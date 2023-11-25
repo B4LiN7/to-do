@@ -9,7 +9,7 @@ export interface Todo {
     editDate: Date;
 }
 
-export interface TodoWithId extends Todo {
+export interface IdTodo {
     id: string;
     todo: Todo;
 }

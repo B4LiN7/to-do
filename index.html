@@ -4,20 +4,85 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
+    <title>ToDo</title>
   </head>
   <body>
-    <div id="container">
-      <div class="row">
-        <div class="col-6">
-          <h1>Hello World!</h1>
+
+    <div class="container">
+      <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+        
+        <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+          <li><a href="index.html" class="nav-link px-2 link-secondary">Főoldal</a></li>
+          <li><a href="dev.html" class="nav-link px-2 link-primary">Dev</a></li>
+          <li><a href="help.html" class="nav-link px-2 link-primary">Segitség</a></li>
+        </ul>
+  
+        <div class="col-md-3 text-end">
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddTodo">ToDo felvétele</button>
         </div>
-        <div class="col-6">
-          <h1>Hello World!</h1>
+      </header>
+
+      <div class="row row-cols-1 row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" id="todoDiv">
+        <!-- Code will manipulate this. -->
+      </div>
+
+      <!-- Modal for adding todo -->
+      <div class="modal fade modal-dialog modal-dialog-centered" id="modalAddTodo" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">ToDo felvétele</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="todoName" class="form-label">Név</label>
+                <input type="text" class="form-control" id="todoName">
+              </div>
+              <div class="mb-3">
+                <label for="todoDescription" class="form-label">Leírás</label>
+                <textarea class="form-control" id="todoDescription" rows="3"></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="todoPriority" class="form-label">Prioritás</label>
+                <select class="form-select" id="todoPriority">
+                  <option value="1">Alacsony</option>
+                  <option value="2">Közepes</option>
+                  <option value="3">Magas</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="todoDeadline" class="form-label">Határidő</label>
+                <input type="date" class="form-control" id="todoDeadline">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
+              <button type="button" class="btn btn-primary">Hozzáadás</button>
+            </div>
+          </div>
         </div>
       </div>
-      
+      <!-- Modal for adding todo -->
+
+      <!-- Toast -->
+      <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toastDiv" class="toast fade hide" role="alert" aria-live="assertive" aria-atomic="true">
+          <!-- Add to code later -->
+          <div class="toast-header">
+            <strong class="me-auto" id="toastTitle">Bootstrap</strong>
+            <small>now</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+          <div class="toast-body" id="toastMessage">
+            Hello, world! This is a toast message.
+          </div>
+          <!-- Add to code later -->
+        </div>
+      </div>
+      <!-- Toast -->
     </div>
-    <script type="module" src="/src/main.ts"></script>
+
+    <script type="module" src="/src/index.ts"></script>
   </body>
 </html>
