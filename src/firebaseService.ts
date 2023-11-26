@@ -17,22 +17,6 @@ const db = getFirestore();
 const colRef = collection(db, "todos");
 
 export class FirebaseService {
-
-    static async getTodoList(): Promise<Todo[]> {
-        const todos: Todo[] = [];
-
-        try {
-            const snapshot = await getDocs(colRef); // wait for the promise to resolve
-            snapshot.forEach((doc) => {
-            todos.push(doc.data() as Todo);
-            });
-        } catch (error) {
-            throw error; // throw the error
-        }
-
-        return todos; // return the todos array
-    }
-
     static async getIdTodoList(): Promise<IdTodo[]> {
         const todos: IdTodo[] = [];
 
@@ -57,7 +41,7 @@ export class FirebaseService {
             });
     }
 
-    static async deleteTodoById(id: string): Promise<boolean> {
+    static async deleteTodo(id: string): Promise<boolean> {
         try {
             const docRef = doc(db, "todos", id);
             await deleteDoc(docRef);
@@ -68,7 +52,7 @@ export class FirebaseService {
         }
     }
     
-    static async editTodoById(id: string, updatedTodo: Todo): Promise<boolean> {
+    static async editTodo(id: string, updatedTodo: Todo): Promise<boolean> {
         try {
             const docRef = doc(db, "todos", id);
             await updateDoc(docRef, updatedTodo);

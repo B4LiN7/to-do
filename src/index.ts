@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import * as bootstrap from "bootstrap/dist/js/bootstrap.min.js";
 
 import { FirebaseService } from "./firebaseService";
-import { Todo,IdTodo } from "./Todo";
+import { Todo, IdTodo } from "./Todo";
 
 
 function makeToast(message: string, title: string): void {
@@ -16,18 +16,6 @@ function makeToast(message: string, title: string): void {
 
   const toast = bootstrap.Toast.getOrCreateInstance(toastDiv);
   toast.show();
-
-  /*
-  const toastTrigger = document.getElementById('liveToastBtn')
-  const toastLiveExample = document.getElementById('liveToast')
-  
-  if (toastTrigger) {
-    const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
-    toastTrigger.addEventListener('click', () => {
-      toastBootstrap.show()
-    })
-  }
-  */
 }
 
 function drawTodos(todos: IdTodo[]): void {
@@ -80,7 +68,7 @@ function drawTodos(todos: IdTodo[]): void {
       changeCompletedStatus.textContent = "Set to completed";
     }
     changeCompletedStatus.addEventListener("click", async () => {
-      await FirebaseService.editTodoById(
+      await FirebaseService.editTodo(
         idTodo.id, 
         {
           isCompleted: !todo.isCompleted
@@ -115,7 +103,7 @@ function drawTodos(todos: IdTodo[]): void {
     deleteButton.classList.add("dropdown-item");
     deleteButton.textContent = "Delete";
     deleteButton.addEventListener("click", async () => {
-      await FirebaseService.deleteTodoById(idTodo.id);
+      await FirebaseService.deleteTodo(idTodo.id);
       drawTodos(await FirebaseService.getIdTodoList());
     });
     const deleteListItem = document.createElement("li");
@@ -139,5 +127,38 @@ function drawTodos(todos: IdTodo[]): void {
 
 document.addEventListener("DOMContentLoaded", async () => {
   drawTodos(await FirebaseService.getIdTodoList());
-  makeToast("Hello world!", "Welcome");
+
+  document.getElementById("btnAddTodo")?.addEventListener("click", async () => {
+    const title = (document.getElementById("inTodoTitle") as HTMLInputElement).value;
+    const description = (document.getElementById("inTodoDescription") as HTMLInputElement).value;
+    const priority = parseInt((document.getElementById("inTodoPriority") as HTMLInputElement).value);
+    const deadline = new Date((document.getElementById("inTodoDeadline") as HTMLInputElement).value);
+
+    if (/^[a-zA-Z]$/.test(title)) {
+      throw new Error("Title must be at least 1 character long!");
+    }
+    if (/^[a-zA-Z]$/.test(description)) {
+      throw new Error("Description must be at least 1 character long!");
+    }
+    if (isNaN(priority) || priority < 1 || priority > 3) {
+      throw new Error("Priority must be a number between 1 and 3!");
+    }
+    if (deadline < new Date()) {
+      throw new Error("Deadline cannot be in the past!");
+    }
+
+    const newTodo: Todo = {
+      title: title,
+      description: description,
+      priority: priority,
+      deadline: deadline,
+      isCompleted: false,
+      isDeleted: false,
+      addDate: new Date(),
+      editDate: new Date()
+    };
+
+    await FirebaseService.addTodo(newTodo);
+    await drawTodos(await FirebaseService.getIdTodoList());
+  });
 });

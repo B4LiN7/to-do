@@ -27,43 +27,43 @@
       </div>
 
       <!-- Modal for adding todo -->
-      <div class="modal fade modal-dialog modal-dialog-centered" id="modalAddTodo" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal fade" id="modalAddTodo" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">ToDo felvétele</h1>
+              <h1 class="modal-title fs-5">ToDo felvétele</h1>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
               <div class="mb-3">
-                <label for="todoName" class="form-label">Név</label>
-                <input type="text" class="form-control" id="todoName">
+                <label for="inTodoTitle" class="form-label">Név</label>
+                <input type="text" class="form-control" id="inTodoTitle">
               </div>
               <div class="mb-3">
-                <label for="todoDescription" class="form-label">Leírás</label>
-                <textarea class="form-control" id="todoDescription" rows="3"></textarea>
+                <label for="inTodoDescription" class="form-label">Leírás</label>
+                <textarea class="form-control" id="inTodoDescription" rows="3"></textarea>
               </div>
               <div class="mb-3">
-                <label for="todoPriority" class="form-label">Prioritás</label>
-                <select class="form-select" id="todoPriority">
+                <label for="inTodoPriority" class="form-label">Prioritás</label>
+                <select class="form-select" id="inTodoPriority">
                   <option value="1">Alacsony</option>
                   <option value="2">Közepes</option>
                   <option value="3">Magas</option>
                 </select>
               </div>
               <div class="mb-3">
-                <label for="todoDeadline" class="form-label">Határidő</label>
-                <input type="date" class="form-control" id="todoDeadline">
+                <label for="inTodoDeadline" class="form-label">Határidő</label>
+                <input type="date" class="form-control" id="inTodoDeadline">
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
-              <button type="button" class="btn btn-primary">Hozzáadás</button>
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="btnAddTodo">Hozzáadás</button>
             </div>
           </div>
         </div>
       </div>
-      <!-- Modal for adding todo -->
+      <!-- End of modal for adding todo -->
 
       <!-- Toast -->
       <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -80,7 +80,7 @@
           <!-- Add to code later -->
         </div>
       </div>
-      <!-- Toast -->
+      <!-- End of toast -->
     </div>
 
     <script type="module" src="/src/index.ts"></script>
