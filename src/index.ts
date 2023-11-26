@@ -5,11 +5,12 @@ import * as bootstrap from "bootstrap/dist/js/bootstrap.min.js";
 import { FirebaseService } from "./firebaseService";
 import { Todo, IdTodo } from "./Todo";
 
+const loadingSpinner = document.getElementById("loadingSpinner") as HTMLDivElement;
 
 function makeToast(message: string, title: string): void {
   const toastDiv = document.getElementById("toastDiv") as HTMLDivElement;
   const toastTitle = document.getElementById("toastTitle") as HTMLDivElement;
-  const toastMessage = document.getElementById("toastMessage") as HTMLDivElement;ű
+  const toastMessage = document.getElementById("toastMessage") as HTMLDivElement;
 
   toastTitle.textContent = title;
   toastMessage.textContent = message;
@@ -19,6 +20,8 @@ function makeToast(message: string, title: string): void {
 }
 
 function drawTodos(todos: IdTodo[]): void {
+  loadingSpinner.style.visibility = "visible";
+
   const todoDiv = document.getElementById("todoDiv") as HTMLDivElement;
   todoDiv.innerHTML = "";
 
@@ -32,6 +35,12 @@ function drawTodos(todos: IdTodo[]): void {
     // Create card
     const card = document.createElement("div");
     card.classList.add("card");
+    if (todo.isCompleted) {
+      card.classList.add("text-bg-primary");
+    }
+    else if (FirebaseService.getTime(todo) < new Date()) {
+      card.classList.add("text-bg-warning");
+    }
 
     // Create card header
     const cardHeader = document.createElement("h5");
@@ -123,6 +132,8 @@ function drawTodos(todos: IdTodo[]): void {
     col.appendChild(card);
     todoDiv.appendChild(col);
   });
+
+  loadingSpinner.style.visibility = "hidden";
 }
 
 document.addEventListener("DOMContentLoaded", async () => {

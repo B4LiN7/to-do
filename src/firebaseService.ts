@@ -17,6 +17,13 @@ const db = getFirestore();
 const colRef = collection(db, "todos");
 
 export class FirebaseService {
+
+    static getTime(todo: Todo): Date {
+        const firebaseTimestamp = todo.deadline;
+        const jsDate = firebaseTimestamp.toDate();
+        return jsDate;
+    }
+
     static async getIdTodoList(): Promise<IdTodo[]> {
         const todos: IdTodo[] = [];
 
