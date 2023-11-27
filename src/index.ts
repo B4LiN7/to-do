@@ -15,7 +15,12 @@ function makeToast(message: string, title: string): void {
   toastTitle.textContent = title;
   toastMessage.textContent = message;
 
-  const toast = bootstrap.Toast.getOrCreateInstance(toastDiv);
+  let options = {
+    animation: true,
+    delay: 5000
+  };
+
+  const toast = bootstrap.Toast.getOrCreateInstance(toastDiv, options);
   toast.show();
 }
 
@@ -140,6 +145,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   drawTodos(await FirebaseService.getIdTodoList());
 
   document.getElementById("btnAddTodo")?.addEventListener("click", async () => {
+    makeToast("Todo added successfully!", "Success");
+
     const title = (document.getElementById("inTodoTitle") as HTMLInputElement).value;
     const description = (document.getElementById("inTodoDescription") as HTMLInputElement).value;
     const priority = parseInt((document.getElementById("inTodoPriority") as HTMLInputElement).value);
@@ -171,5 +178,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await FirebaseService.addTodo(newTodo);
     await drawTodos(await FirebaseService.getIdTodoList());
+    
   });
 });
