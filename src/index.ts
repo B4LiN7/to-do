@@ -49,7 +49,7 @@ function drawTodos(todos: IdTodo[]): void {
 
     // Create card
     const card = document.createElement("div");
-    card.classList.add("card");
+    card.classList.add("card", "h-100");
     if (todo.isCompleted) {
       card.classList.add("text-bg-primary");
     }
