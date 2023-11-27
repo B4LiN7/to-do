@@ -106,7 +106,7 @@ function drawTodos(todos: IdTodo[]): void {
           isCompleted: !todo.isCompleted
         } as Todo
         );
-      drawTodos(await TodoService.getIdTodoList());
+      drawTodos(orderByDeadline(await TodoService.getIdTodoList()));
     });
     buttonGroup.appendChild(changeCompletedStatus);
 
@@ -147,7 +147,7 @@ function drawTodos(todos: IdTodo[]): void {
     deleteButton.textContent = "Törlés";
     deleteButton.addEventListener("click", async () => {
       await TodoService.editTodo(idTodo.id, {isDeleted: true} as Todo);
-      drawTodos(await TodoService.getIdTodoList());
+      drawTodos(orderByDeadline(await TodoService.getIdTodoList()));
     });
     const deleteListItem = document.createElement("li");
     deleteListItem.appendChild(deleteButton);
@@ -275,7 +275,7 @@ async function editTodo(): Promise<void> {
     )) {
       makeToast("Todo sikeresen módosítva!", "Siker");
     }
-    await drawTodos(await TodoService.getIdTodoList());
+    await drawTodos(orderByDeadline(await TodoService.getIdTodoList()));
   }
   else {
     makeToast("Hibás adato(ka)t tartalmazó mező(k) vannak!", "Hiba");
