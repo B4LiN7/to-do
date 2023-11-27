@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { addDoc, collection, deleteDoc, doc, getDocs, getFirestore, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, getFirestore, updateDoc, Timestamp } from "firebase/firestore";
 import { Todo, IdTodo } from "./Todo";
 
 const firebaseConfig = {
@@ -16,12 +16,44 @@ initializeApp(firebaseConfig);
 const db = getFirestore();
 const colRef = collection(db, "todos");
 
-export class FirebaseService {
+export class TodoService {
 
-    static getTime(todo: Todo): Date {
-        const firebaseTimestamp = todo.deadline;
+    static getDeadlineDate(todo: Todo): Date {
+        return this.convertTimestampToDate(todo.deadline);
+    }
+
+    static convertDateToTimestamp(date: Date): Timestamp {
+        const jsDate = date;
+        const firebaseTimestamp = Timestamp.fromDate(jsDate);
+        return firebaseTimestamp;
+    }
+
+    static convertTimestampToDate(timestamp: Timestamp): Date {
+        const firebaseTimestamp = timestamp;
         const jsDate = firebaseTimestamp.toDate();
         return jsDate;
+    }
+
+    static async undeleteAllTodos(): Promise<boolean> {
+        const todos = await this.getIdTodoList();
+        for (const todo of todos) {
+            if (todo.todo.isDeleted) {
+                todo.todo.isDeleted = false;
+                await this.editTodo(todo.id, todo.todo);
+            }
+        }
+        return true;
+    }
+
+    static async deleteAllTodos(): Promise<boolean> {
+        const todos = await this.getIdTodoList();
+        for (const todo of todos) {
+            if (!todo.todo.isDeleted) {
+                todo.todo.isDeleted = true;
+                await this.editTodo(todo.id, todo.todo);
+            }
+        }
+        return true;
     }
 
     static async getIdTodoList(): Promise<IdTodo[]> {
@@ -32,6 +64,8 @@ export class FirebaseService {
             snapshot.forEach((doc) => {
             todos.push({ id: doc.id, todo: doc.data() } as IdTodo);
             });
+            // Convert a Firebase timestamp to a JavaScript date
+
         } catch (error) {
             throw error; // throw the error
         }
@@ -39,6 +73,11 @@ export class FirebaseService {
         return todos; // return the todos array
     }
 
+    /**
+     * Létrehoz egy új Todo-t.
+     * @param newTodo Az új Todo.
+     * @returns Igaz/Hamis értékkel tér vissza, attól függően, hogy sikerült-e a létrehozás.
+     */
     static async addTodo(newTodo: Todo): Promise<boolean> {
         return addDoc(colRef, newTodo)
             .then(() => true) // Add successful

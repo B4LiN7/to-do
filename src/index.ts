@@ -2,10 +2,16 @@ import "bootstrap/dist/css/bootstrap.min.css";
 // import "bootstrap/dist/js/bootstrap.min.js";
 import * as bootstrap from "bootstrap/dist/js/bootstrap.min.js";
 
-import { FirebaseService } from "./firebaseService";
-import { Todo, IdTodo } from "./Todo";
+import { TodoService } from "./Todo/TodoService";
+import { Todo, IdTodo } from "./Todo/Todo";
 
 const loadingSpinner = document.getElementById("loadingSpinner") as HTMLDivElement;
+const modalTodo = new bootstrap.Modal(document.getElementById("modalTodo") as HTMLElement);
+
+let edit = {
+  isEdit: false,
+  id: ""
+};
 
 function makeToast(message: string, title: string): void {
   const toastDiv = document.getElementById("toastDiv") as HTMLDivElement;
@@ -17,13 +23,17 @@ function makeToast(message: string, title: string): void {
 
   let options = {
     animation: true,
-    delay: 5000
+    delay: 2000
   };
 
   const toast = bootstrap.Toast.getOrCreateInstance(toastDiv, options);
   toast.show();
 }
 
+/**
+ * A Todo-k listájának renderelése.
+ * @param todos Todo-k listája. IdTodo-kat tartalmaz, hogy a gombokat megfelelően lehessen kezelni.
+ */
 function drawTodos(todos: IdTodo[]): void {
   loadingSpinner.style.visibility = "visible";
 
@@ -43,7 +53,7 @@ function drawTodos(todos: IdTodo[]): void {
     if (todo.isCompleted) {
       card.classList.add("text-bg-primary");
     }
-    else if (FirebaseService.getTime(todo) < new Date()) {
+    else if (TodoService.getDeadlineDate(todo) < new Date()) {
       card.classList.add("text-bg-warning");
     }
 
@@ -63,6 +73,14 @@ function drawTodos(todos: IdTodo[]): void {
     cardText.textContent = todo.description;
     cardBody.appendChild(cardText);
 
+    // Create card text for priority and deadline
+    const cardPriority = document.createElement("p");
+    cardPriority.classList.add("card-text", "small");
+    cardPriority.textContent = "⚠️Prioritás: " + getPriorityName(todo.priority) + " ⌛Határidő: " + 
+      TodoService.getDeadlineDate(todo).toLocaleString();
+    cardBody.appendChild(cardPriority);
+
+    // Add cardBody for card
     card.appendChild(cardBody);
 
     // Create card footer
@@ -77,18 +95,18 @@ function drawTodos(todos: IdTodo[]): void {
     const changeCompletedStatus = document.createElement("button");
     changeCompletedStatus.classList.add("btn", "btn-primary");
     if (todo.isCompleted) {
-      changeCompletedStatus.textContent = "Set to not completed";
+      changeCompletedStatus.textContent = "Nem késznek jelölés";
     } else {
-      changeCompletedStatus.textContent = "Set to completed";
+      changeCompletedStatus.textContent = "Késznek jelölés";
     }
     changeCompletedStatus.addEventListener("click", async () => {
-      await FirebaseService.editTodo(
+      await TodoService.editTodo(
         idTodo.id, 
         {
           isCompleted: !todo.isCompleted
         } as Todo
         );
-      drawTodos(await FirebaseService.getIdTodoList());
+      drawTodos(await TodoService.getIdTodoList());
     });
     buttonGroup.appendChild(changeCompletedStatus);
 
@@ -98,7 +116,7 @@ function drawTodos(todos: IdTodo[]): void {
     dropdownButton.setAttribute("type", "button");
     dropdownButton.setAttribute("data-bs-toggle", "dropdown");
     dropdownButton.setAttribute("aria-expanded", "false");
-    dropdownButton.textContent = "Other actions";
+    dropdownButton.textContent = "Egyéb";
     buttonGroup.appendChild(dropdownButton);
 
     // Create dropdown menu
@@ -107,7 +125,18 @@ function drawTodos(todos: IdTodo[]): void {
 
     const editButton = document.createElement("button");
     editButton.classList.add("dropdown-item");
-    editButton.textContent = "Edit";
+    editButton.textContent = "Módosítás";
+    editButton.addEventListener("click", () => {
+      edit.isEdit = true;
+      edit.id = idTodo.id;
+      modalTodo.show();
+      const modalTodoTitle = document.getElementById("modalTodoTitle") as HTMLElement;
+      modalTodoTitle.textContent = "Todo módosítása";
+      (document.getElementById("inTodoTitle") as HTMLInputElement).value = todo.title;
+      (document.getElementById("inTodoDescription") as HTMLInputElement).value = todo.description;
+      (document.getElementById("inTodoPriority") as HTMLInputElement).value = todo.priority.toString();
+      (document.getElementById("inTodoDeadline") as HTMLInputElement).value = TodoService.getDeadlineDate(todo).toLocaleString();
+    });
     const editListItem = document.createElement("li");
     editListItem.appendChild(editButton);
     dropdownMenu.appendChild(editListItem);
@@ -115,10 +144,10 @@ function drawTodos(todos: IdTodo[]): void {
     // Create delete button
     const deleteButton = document.createElement("button");
     deleteButton.classList.add("dropdown-item");
-    deleteButton.textContent = "Delete";
+    deleteButton.textContent = "Törlés";
     deleteButton.addEventListener("click", async () => {
-      await FirebaseService.deleteTodo(idTodo.id);
-      drawTodos(await FirebaseService.getIdTodoList());
+      await TodoService.editTodo(idTodo.id, {isDeleted: true} as Todo);
+      drawTodos(await TodoService.getIdTodoList());
     });
     const deleteListItem = document.createElement("li");
     deleteListItem.appendChild(deleteButton);
@@ -132,8 +161,6 @@ function drawTodos(todos: IdTodo[]): void {
     const col = document.createElement("div");
     col.classList.add("col");
 
-    
-
     col.appendChild(card);
     todoDiv.appendChild(col);
   });
@@ -141,29 +168,64 @@ function drawTodos(todos: IdTodo[]): void {
   loadingSpinner.style.visibility = "hidden";
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  drawTodos(await FirebaseService.getIdTodoList());
+function getPriorityName(priority: number): string {
+  switch (priority) {
+    case 1:
+      return "Alacsony";
+    case 2:
+      return "Közepes";
+    case 3:
+      return "Magas";
+    default:
+      return "Ismertelen";
+  }
+}
 
-  document.getElementById("btnAddTodo")?.addEventListener("click", async () => {
-    makeToast("Todo added successfully!", "Success");
+/**
+ * Bemeneti mezők ellenőrzése. Igaz, ha minden mező megfelelő.
+ */
+function checkModalInputs(): boolean {
+  const titleInput = (document.getElementById("inTodoTitle") as HTMLInputElement);
+  const descriptionInput = (document.getElementById("inTodoDescription") as HTMLInputElement);
+  const priorityInput = (document.getElementById("inTodoPriority") as HTMLInputElement);
+  const deadlineInput = (document.getElementById("inTodoDeadline") as HTMLInputElement);
 
+  if (/^[a-zA-Z]$/.test(titleInput.value)) {
+    return false;
+  }
+  if (/^[a-zA-Z]$/.test(descriptionInput.value)) {
+    return false;
+  }
+  if (isNaN(parseInt(priorityInput.value)) || parseInt(priorityInput.value) < 1 || parseInt(priorityInput.value) > 3) {
+    return false;
+  }
+  if (new Date(deadlineInput.value) < new Date()) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Bemeneti mezők kiürítése.
+ */
+function clearModalInputs(): void {
+  (document.getElementById("inTodoTitle") as HTMLInputElement).value = "";
+  (document.getElementById("inTodoDescription") as HTMLInputElement).value = "";
+  (document.getElementById("inTodoPriority") as HTMLInputElement).value = "";
+  (document.getElementById("inTodoDeadline") as HTMLInputElement).value = "";
+}
+
+/**
+ * Új Todo hozzáadása.
+ */
+async function addTodo(): Promise<void> {
+  if (checkModalInputs()) {
     const title = (document.getElementById("inTodoTitle") as HTMLInputElement).value;
     const description = (document.getElementById("inTodoDescription") as HTMLInputElement).value;
     const priority = parseInt((document.getElementById("inTodoPriority") as HTMLInputElement).value);
-    const deadline = new Date((document.getElementById("inTodoDeadline") as HTMLInputElement).value);
+    const deadline = TodoService.convertDateToTimestamp(new Date((document.getElementById("inTodoDeadline") as HTMLInputElement).value));
 
-    if (/^[a-zA-Z]$/.test(title)) {
-      throw new Error("Title must be at least 1 character long!");
-    }
-    if (/^[a-zA-Z]$/.test(description)) {
-      throw new Error("Description must be at least 1 character long!");
-    }
-    if (isNaN(priority) || priority < 1 || priority > 3) {
-      throw new Error("Priority must be a number between 1 and 3!");
-    }
-    if (deadline < new Date()) {
-      throw new Error("Deadline cannot be in the past!");
-    }
+    clearModalInputs();
 
     const newTodo: Todo = {
       title: title,
@@ -172,12 +234,74 @@ document.addEventListener("DOMContentLoaded", async () => {
       deadline: deadline,
       isCompleted: false,
       isDeleted: false,
-      addDate: new Date(),
-      editDate: new Date()
+      addDate: TodoService.convertDateToTimestamp(new Date()),
+      editDate: TodoService.convertDateToTimestamp(new Date())
     };
 
-    await FirebaseService.addTodo(newTodo);
-    await drawTodos(await FirebaseService.getIdTodoList());
-    
+    if (await TodoService.addTodo(newTodo)) {
+      makeToast("Todo sikeresen hozzáadva!", "Siker");
+    }
+    await drawTodos(await TodoService.getIdTodoList());
+  }
+  else {
+    makeToast("Hibás adato(ka)t tartalmazó mező(k) vannak!", "Hiba");
+    clearModalInputs();
+  }
+}
+
+async function editTodo(): Promise<void> {
+  if (checkModalInputs()) {
+    const title = (document.getElementById("inTodoTitle") as HTMLInputElement).value;
+    const description = (document.getElementById("inTodoDescription") as HTMLInputElement).value;
+    const priority = parseInt((document.getElementById("inTodoPriority") as HTMLInputElement).value);
+    const deadline = TodoService.convertDateToTimestamp(new Date((document.getElementById("inTodoDeadline") as HTMLInputElement).value));
+
+    clearModalInputs();
+
+    const newTodo: Todo = {
+      title: title,
+      description: description,
+      priority: priority,
+      deadline: deadline,
+      isCompleted: false,
+      isDeleted: false,
+      addDate: TodoService.convertDateToTimestamp(new Date()),
+      editDate: TodoService.convertDateToTimestamp(new Date())
+    };
+
+    if (await TodoService.editTodo(
+      edit.id,
+      newTodo
+    )) {
+      makeToast("Todo sikeresen módosítva!", "Siker");
+    }
+    await drawTodos(await TodoService.getIdTodoList());
+  }
+  else {
+    makeToast("Hibás adato(ka)t tartalmazó mező(k) vannak!", "Hiba");
+    clearModalInputs();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  document.getElementById("formTodo")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (edit.isEdit) {
+      editTodo();
+      edit.isEdit = false;
+    }
+    else {
+      addTodo();
+    }
+    modalTodo.hide();
   });
+
+  document.getElementById("openModalTodoForAdd")?.addEventListener("click", () => {
+    const modalTodoTitle = document.getElementById("modalTodoTitle") as HTMLElement;
+    modalTodoTitle.textContent = "Új Todo hozzáadása";
+    modalTodo.show();
+  });
+
+  drawTodos(await TodoService.getIdTodoList());
+
 });
