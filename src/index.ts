@@ -241,7 +241,7 @@ async function addTodo(): Promise<void> {
     if (await TodoService.addTodo(newTodo)) {
       makeToast("Todo sikeresen hozzáadva!", "Siker");
     }
-    await drawTodos(await TodoService.getIdTodoList());
+    await drawTodos(orderByDeadline(await TodoService.getIdTodoList()));
   }
   else {
     makeToast("Hibás adato(ka)t tartalmazó mező(k) vannak!", "Hiba");
@@ -283,6 +283,18 @@ async function editTodo(): Promise<void> {
   }
 }
 
+function orderByDeadline(todo: IdTodo[]): IdTodo[] {
+  return todo.sort((a, b) => {
+    if (TodoService.isDeadlineExpired(a.todo) && !TodoService.isDeadlineExpired(b.todo)) {
+      return 1;
+    }
+    else if (!TodoService.isDeadlineExpired(a.todo) && TodoService.isDeadlineExpired(b.todo)) {
+      return -1;
+    }
+    return TodoService.getDeadlineDate(a.todo).getTime() - TodoService.getDeadlineDate(b.todo).getTime();
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("formTodo")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -302,6 +314,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     modalTodo.show();
   });
 
-  drawTodos(await TodoService.getIdTodoList());
+  drawTodos(orderByDeadline( await TodoService.getIdTodoList()));
 
 });

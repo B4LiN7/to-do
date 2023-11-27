@@ -22,6 +22,12 @@ export class TodoService {
         return this.convertTimestampToDate(todo.deadline);
     }
 
+    static isDeadlineExpired(todo: Todo): boolean {
+        const deadlineDate = this.convertTimestampToDate(todo.deadline);
+        const now = new Date();
+        return deadlineDate < now;
+    }
+
     static convertDateToTimestamp(date: Date): Timestamp {
         const jsDate = date;
         const firebaseTimestamp = Timestamp.fromDate(jsDate);
@@ -32,6 +38,14 @@ export class TodoService {
         const firebaseTimestamp = timestamp;
         const jsDate = firebaseTimestamp.toDate();
         return jsDate;
+    }
+
+    static async dropDatabase(): Promise<boolean> {
+        const todos = await this.getIdTodoList();
+        for (const todo of todos) {
+            await this.deleteTodo(todo.id);
+        }
+        return true;
     }
 
     static async undeleteAllTodos(): Promise<boolean> {
