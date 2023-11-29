@@ -1,18 +1,41 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-// import "bootstrap/dist/js/bootstrap.min.js";
 import * as bootstrap from "bootstrap/dist/js/bootstrap.min.js";
-
 import { TodoService } from "./Todo/TodoService";
 import { Todo, IdTodo } from "./Todo/Todo";
 
+// Globális változók
 const loadingSpinner = document.getElementById("loadingSpinner") as HTMLDivElement;
 const modalTodo = new bootstrap.Modal(document.getElementById("modalTodo") as HTMLElement);
 
-let edit = {
-  isEdit: false,
-  id: ""
-};
+// Konfigurációs objektumo
+const config = {
+  editMode: {
+    isOn: false,
+    id: ""
+  },
+  toast: {
+    animation: true,
+    delay: 2000
+  },
+  cardStyle: {
+    cardBody: {
+      default: "text-body-white",
+      completed: "text-bg-primary",
+      expired: "text-bg-warning"
+    },
+    button : {
+      default: "btn-primary",
+      completed: "btn-secondary",
+      expired: "btn-secondary"
+    }
+  }
+}
 
+/**
+ * Az oldal jobb alsó sarkában megjelenő értesítés.
+ * @param message A toast értesités üzenete.
+ * @param title A toast értesités címe.
+ */
 function makeToast(message: string, title: string): void {
   const toastDiv = document.getElementById("toastDiv") as HTMLDivElement;
   const toastTitle = document.getElementById("toastTitle") as HTMLDivElement;
@@ -21,12 +44,7 @@ function makeToast(message: string, title: string): void {
   toastTitle.textContent = title;
   toastMessage.textContent = message;
 
-  let options = {
-    animation: true,
-    delay: 2000
-  };
-
-  const toast = bootstrap.Toast.getOrCreateInstance(toastDiv, options);
+  const toast = bootstrap.Toast.getOrCreateInstance(toastDiv, config.toast);
   toast.show();
 }
 
@@ -43,6 +61,7 @@ function drawTodos(todos: IdTodo[]): void {
   todos.forEach((idTodo) => {
     const todo = idTodo.todo;
 
+    // Skip deleted todos
     if (todo.isDeleted) {
       return;
     }
@@ -50,10 +69,12 @@ function drawTodos(todos: IdTodo[]): void {
     // Create card
     const card = document.createElement("div");
     card.classList.add("card", "h-100");
+    // If todo is completed, add text-bg-primary class
     if (todo.isCompleted) {
       card.classList.add("text-bg-primary");
     }
-    else if (TodoService.getDeadlineDate(todo) < new Date()) {
+    // If todo is expired, add text-bg-warning class
+    else if (todo.deadline < new Date()) {
       card.classList.add("text-bg-warning");
     }
 
@@ -76,8 +97,7 @@ function drawTodos(todos: IdTodo[]): void {
     // Create card text for priority and deadline
     const cardPriority = document.createElement("p");
     cardPriority.classList.add("card-text", "small");
-    cardPriority.textContent = "⚠️Prioritás: " + getPriorityName(todo.priority) + " ⌛Határidő: " + 
-      TodoService.getDeadlineDate(todo).toLocaleString();
+    cardPriority.textContent = "⚠️Prioritás: " + TodoService.getPriorityName(todo.priority) + " ⌛Határidő: " + todo.deadline.toLocaleString();
     cardBody.appendChild(cardPriority);
 
     // Add cardBody for card
@@ -93,7 +113,19 @@ function drawTodos(todos: IdTodo[]): void {
 
     // Create button for changing completed status
     const changeCompletedStatus = document.createElement("button");
-    changeCompletedStatus.classList.add("btn", "btn-primary");
+    changeCompletedStatus.classList.add("btn");
+
+    // ! Ha a todo kész, akkor a gomb szürke lesz, egyébként kék.
+    if (todo.isCompleted) {
+      changeCompletedStatus.classList.add(config.cardStyle.button.completed);
+    }
+    else if (todo.deadline < new Date()) {
+      changeCompletedStatus.classList.add(config.cardStyle.button.expired);
+    }
+    else {
+      changeCompletedStatus.classList.add(config.cardStyle.button.default);
+    }
+
     if (todo.isCompleted) {
       changeCompletedStatus.textContent = "Nem késznek jelölés";
     } else {
@@ -103,16 +135,29 @@ function drawTodos(todos: IdTodo[]): void {
       await TodoService.editTodo(
         idTodo.id, 
         {
+          ...todo,
           isCompleted: !todo.isCompleted
         } as Todo
-        );
-      drawTodos(orderByDeadline(await TodoService.getIdTodoList()));
+      );
+      drawTodos(TodoService.orderByDeadline(await TodoService.getIdTodoList()));
     });
     buttonGroup.appendChild(changeCompletedStatus);
 
     // Create dropdown button for other buttons
     const dropdownButton = document.createElement("button");
-    dropdownButton.classList.add("btn", "btn-primary", "dropdown-toggle");
+    dropdownButton.classList.add("btn", "dropdown-toggle");
+
+    // ! Ha a todo kész, akkor a gomb szürke lesz, egyébként kék.
+    if (todo.isCompleted) {
+      dropdownButton.classList.add(config.cardStyle.button.completed);
+    }
+    else if (todo.deadline < new Date()) {
+      dropdownButton.classList.add(config.cardStyle.button.expired);
+    }
+    else {
+      dropdownButton.classList.add(config.cardStyle.button.default);
+    }
+
     dropdownButton.setAttribute("type", "button");
     dropdownButton.setAttribute("data-bs-toggle", "dropdown");
     dropdownButton.setAttribute("aria-expanded", "false");
@@ -123,19 +168,20 @@ function drawTodos(todos: IdTodo[]): void {
     const dropdownMenu = document.createElement("ul");
     dropdownMenu.classList.add("dropdown-menu");
 
+    // Create edit button
     const editButton = document.createElement("button");
     editButton.classList.add("dropdown-item");
     editButton.textContent = "Módosítás";
     editButton.addEventListener("click", () => {
-      edit.isEdit = true;
-      edit.id = idTodo.id;
+      config.editMode.isOn = true;
+      config.editMode.id = idTodo.id;
       modalTodo.show();
       const modalTodoTitle = document.getElementById("modalTodoTitle") as HTMLElement;
       modalTodoTitle.textContent = "Todo módosítása";
       (document.getElementById("inTodoTitle") as HTMLInputElement).value = todo.title;
       (document.getElementById("inTodoDescription") as HTMLInputElement).value = todo.description;
       (document.getElementById("inTodoPriority") as HTMLInputElement).value = todo.priority.toString();
-      (document.getElementById("inTodoDeadline") as HTMLInputElement).value = TodoService.getDeadlineDate(todo).toLocaleString();
+      (document.getElementById("inTodoDeadline") as HTMLInputElement).value = todo.deadline.toLocaleString();
     });
     const editListItem = document.createElement("li");
     editListItem.appendChild(editButton);
@@ -146,63 +192,57 @@ function drawTodos(todos: IdTodo[]): void {
     deleteButton.classList.add("dropdown-item");
     deleteButton.textContent = "Törlés";
     deleteButton.addEventListener("click", async () => {
-      await TodoService.editTodo(idTodo.id, {isDeleted: true} as Todo);
-      drawTodos(orderByDeadline(await TodoService.getIdTodoList()));
+      await TodoService.editTodo(idTodo.id, {...todo, isDeleted: true} as Todo);
+      drawTodos(TodoService.orderByDeadline(await TodoService.getIdTodoList()));
     });
     const deleteListItem = document.createElement("li");
     deleteListItem.appendChild(deleteButton);
     dropdownMenu.appendChild(deleteListItem);
 
+    // Add dropdown menu for button group
     buttonGroup.appendChild(dropdownMenu);
 
+    // Add button group for card footer
     cardFooter.appendChild(buttonGroup);
     card.appendChild(cardFooter);
 
+    // Create column for card
     const col = document.createElement("div");
     col.classList.add("col");
-
     col.appendChild(card);
+
+    // Add card for column
     todoDiv.appendChild(col);
   });
 
   loadingSpinner.style.visibility = "hidden";
 }
 
-function getPriorityName(priority: number): string {
-  switch (priority) {
-    case 1:
-      return "Alacsony";
-    case 2:
-      return "Közepes";
-    case 3:
-      return "Magas";
-    default:
-      return "Ismertelen";
-  }
-}
-
 /**
- * Bemeneti mezők ellenőrzése. Igaz, ha minden mező megfelelő.
+ * Bemeneti mezők ellenőrzése.
+ * @returns Egy tömböt ad vissza, amiben azok a hibák vannak, amiket a bemeneti mezők tartalmaznak.
  */
-function checkModalInputs(): boolean {
+function checkModalInputs(): string[] {
+  const errorMessages: string[] = [];
+
   const titleInput = (document.getElementById("inTodoTitle") as HTMLInputElement);
   const descriptionInput = (document.getElementById("inTodoDescription") as HTMLInputElement);
   const priorityInput = (document.getElementById("inTodoPriority") as HTMLInputElement);
   const deadlineInput = (document.getElementById("inTodoDeadline") as HTMLInputElement);
 
   if (/^[a-zA-Z]$/.test(titleInput.value)) {
-    return false;
+    errorMessages.push("A cím mező nem lehet üres!");
   }
   if (/^[a-zA-Z]$/.test(descriptionInput.value)) {
-    return false;
+    errorMessages.push("A leírás mező nem lehet üres!");
   }
   if (isNaN(parseInt(priorityInput.value)) || parseInt(priorityInput.value) < 1 || parseInt(priorityInput.value) > 3) {
-    return false;
+    errorMessages.push("A prioritás mező csak 1 és 3 közötti szám lehet!");
   }
   if (new Date(deadlineInput.value) < new Date()) {
-    return false;
+    errorMessages.push("A határidő mező nem lehet a múltban!");
   }
-  return true;
+  return errorMessages;
 }
 
 /**
@@ -219,13 +259,12 @@ function clearModalInputs(): void {
  * Új Todo hozzáadása.
  */
 async function addTodo(): Promise<void> {
-  if (checkModalInputs()) {
+  const errorMessages = checkModalInputs();
+  if (errorMessages.length === 0) {
     const title = (document.getElementById("inTodoTitle") as HTMLInputElement).value;
     const description = (document.getElementById("inTodoDescription") as HTMLInputElement).value;
     const priority = parseInt((document.getElementById("inTodoPriority") as HTMLInputElement).value);
-    const deadline = TodoService.convertDateToTimestamp(new Date((document.getElementById("inTodoDeadline") as HTMLInputElement).value));
-
-    clearModalInputs();
+    const deadline = new Date((document.getElementById("inTodoDeadline") as HTMLInputElement).value);
 
     const newTodo: Todo = {
       title: title,
@@ -234,73 +273,65 @@ async function addTodo(): Promise<void> {
       deadline: deadline,
       isCompleted: false,
       isDeleted: false,
-      addDate: TodoService.convertDateToTimestamp(new Date()),
-      editDate: TodoService.convertDateToTimestamp(new Date())
+      addDate: new Date(),
+      editDate: new Date()
     };
 
     if (await TodoService.addTodo(newTodo)) {
       makeToast("Todo sikeresen hozzáadva!", "Siker");
     }
-    await drawTodos(orderByDeadline(await TodoService.getIdTodoList()));
+    else {
+      makeToast("Todo hozzáadása sikertelen!", "Hiba");
+    }
+    await drawTodos(TodoService.orderByDeadline(await TodoService.getIdTodoList()));
   }
   else {
-    makeToast("Hibás adato(ka)t tartalmazó mező(k) vannak!", "Hiba");
-    clearModalInputs();
+    makeToast(`Hibás adato(ka)t tartalmazó mező(k) vannak! [Hibák: ${errorMessages}]`, "Hiba!");
   }
+  clearModalInputs();
 }
 
+/**
+ * Todo módosítása.
+ */
 async function editTodo(): Promise<void> {
-  if (checkModalInputs()) {
+  const errorMessages = checkModalInputs();
+  if (errorMessages.length === 0) {
     const title = (document.getElementById("inTodoTitle") as HTMLInputElement).value;
     const description = (document.getElementById("inTodoDescription") as HTMLInputElement).value;
     const priority = parseInt((document.getElementById("inTodoPriority") as HTMLInputElement).value);
-    const deadline = TodoService.convertDateToTimestamp(new Date((document.getElementById("inTodoDeadline") as HTMLInputElement).value));
+    const deadline = new Date((document.getElementById("inTodoDeadline") as HTMLInputElement).value);
 
-    clearModalInputs();
+    const currentTodo = await TodoService.getTodoById(config.editMode.id);
 
     const newTodo: Todo = {
+      ...currentTodo,
       title: title,
       description: description,
       priority: priority,
       deadline: deadline,
-      isCompleted: false,
-      isDeleted: false,
-      addDate: TodoService.convertDateToTimestamp(new Date()),
-      editDate: TodoService.convertDateToTimestamp(new Date())
     };
 
     if (await TodoService.editTodo(
-      edit.id,
+      config.editMode.id,
       newTodo
     )) {
       makeToast("Todo sikeresen módosítva!", "Siker");
     }
-    await drawTodos(orderByDeadline(await TodoService.getIdTodoList()));
+    await drawTodos(TodoService.orderByDeadline(await TodoService.getIdTodoList()));
   }
   else {
     makeToast("Hibás adato(ka)t tartalmazó mező(k) vannak!", "Hiba");
-    clearModalInputs();
   }
-}
-
-function orderByDeadline(todo: IdTodo[]): IdTodo[] {
-  return todo.sort((a, b) => {
-    if (TodoService.isDeadlineExpired(a.todo) && !TodoService.isDeadlineExpired(b.todo)) {
-      return 1;
-    }
-    else if (!TodoService.isDeadlineExpired(a.todo) && TodoService.isDeadlineExpired(b.todo)) {
-      return -1;
-    }
-    return TodoService.getDeadlineDate(a.todo).getTime() - TodoService.getDeadlineDate(b.todo).getTime();
-  });
+  clearModalInputs();
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("formTodo")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    if (edit.isEdit) {
+    if (config.editMode.isOn) {
       editTodo();
-      edit.isEdit = false;
+      config.editMode.isOn = false;
     }
     else {
       addTodo();
@@ -314,6 +345,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     modalTodo.show();
   });
 
-  drawTodos(orderByDeadline( await TodoService.getIdTodoList()));
-
+  drawTodos(TodoService.orderByDeadline( await TodoService.getIdTodoList()));
 });

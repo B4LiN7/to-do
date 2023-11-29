@@ -1,7 +1,9 @@
+import { Timestamp } from "firebase/firestore";
+
 /**
  * Todo-k adatinak leirása.
  */
-export interface Todo {
+export interface TodoDTO {
     /**
      * A teendő címe.
      */
@@ -17,7 +19,7 @@ export interface Todo {
     /**
      * A teendő határideje.
      */
-    deadline: Date;
+    deadline: Timestamp;
     /**
      * A teendő státusza. Igaz, ha kész.
      */
@@ -29,14 +31,9 @@ export interface Todo {
     /**
      * A teendő hozzáadásának dátuma.
      */
-    addDate: Date;
+    addDate: Timestamp;
     /**
      * A teendő utolsó módosításának dátuma.
      */
-    editDate: Date;
-}
-
-export interface IdTodo {
-    id: string;
-    todo: Todo;
+    editDate: Timestamp;
 }
