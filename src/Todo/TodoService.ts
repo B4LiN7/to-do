@@ -107,6 +107,7 @@ export class TodoService {
             updatedTodo.editDate = new Date();
             const updatedTodoDTO = this.convertTodoToTodoDto(updatedTodo);
             const docRef = doc(db, "todos", id);
+            // @ts-ignore
             await updateDoc(docRef, updatedTodoDTO);
             return true;
         } catch (error) {
@@ -194,27 +195,58 @@ export class TodoService {
     }
 
     /**
-     * Todo listában a határidő szerinti sorba rendezés.
+     * Határidő szerint sorba rendezi a Todo-k listáját.
      * @param todo Todo-k listája.
      * @returns Sorba rendezett Todo-k listája.
      */
     static orderByDeadline(todo: IdTodo[]): IdTodo[] {
+        return todo.sort((a, b) => {    
+            if (a.todo.deadline < b.todo.deadline) {
+                return -1;
+            }
+            else if (a.todo.deadline > b.todo.deadline) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+        });
+    }
+
+    /**
+     * Állapot szerint sorba rendezi a Todo-k listáját.
+     * @param todo Todo-k listája.
+     * @returns Sorba rendezett Todo-k listája.
+     */
+    static orderByStatus(todo: IdTodo[]): IdTodo[] {
         return todo.sort((a, b) => {
-        if (TodoService.isDeadlineExpired(a.todo) && !TodoService.isDeadlineExpired(b.todo)) {
-            return 1;
-        }
-        else if (!TodoService.isDeadlineExpired(a.todo) && TodoService.isDeadlineExpired(b.todo)) {
-            return -1;
-        }
-        
-        if (a.todo.deadline < b.todo.deadline) {
-            return -1;
-        }
-        else if (a.todo.deadline > b.todo.deadline) {
-            return 1;
-        }
-        else {
-            return 0;
+            if (TodoService.isDeadlineExpired(a.todo) && !TodoService.isDeadlineExpired(b.todo)) {
+                return 1;
+            }
+            else if (!TodoService.isDeadlineExpired(a.todo) && TodoService.isDeadlineExpired(b.todo)) {
+                return -1;
+            }
+            else {
+                return 0;
+            }
+        });
+    }
+
+    /**
+     * Prioritás szerint sorba rendezi a Todo-k listáját.
+     * @param todo Todo-k listája.
+     * @returns Sorba rendezett Todo-k listája.
+     */
+    static orderByPriority(todo: IdTodo[]): IdTodo[] {
+        return todo.sort((a, b) => {
+            if (a.todo.priority < b.todo.priority) {
+                return 1;
+            }
+            else if (a.todo.priority > b.todo.priority) {
+                return -1;
+            }
+            else {
+                return 0;
         }
         });
     }

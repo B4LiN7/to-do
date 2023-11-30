@@ -1,35 +1,16 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import * as bootstrap from "bootstrap/dist/js/bootstrap.min.js";
+import { Modal, Toast } from "bootstrap";
 import { TodoService } from "./Todo/TodoService";
 import { Todo, IdTodo } from "./Todo/Todo";
+import { ConfigService } from "./Config/ConfigService";
 
 // Globális változók
 const loadingSpinner = document.getElementById("loadingSpinner") as HTMLDivElement;
-const modalTodo = new bootstrap.Modal(document.getElementById("modalTodo") as HTMLElement);
+const modalTodo = new Modal(document.getElementById("modalTodo") as HTMLElement);
 
-// Konfigurációs objektumo
-const config = {
-  editMode: {
-    isOn: false,
-    id: ""
-  },
-  toast: {
-    animation: true,
-    delay: 2000
-  },
-  cardStyle: {
-    cardBody: {
-      default: "text-body-white",
-      completed: "text-bg-primary",
-      expired: "text-bg-warning"
-    },
-    button : {
-      default: "btn-primary",
-      completed: "btn-secondary",
-      expired: "btn-secondary"
-    }
-  }
-}
+
+// Konfigurációs objektumok
+const config = ConfigService.config;
 
 /**
  * Az oldal jobb alsó sarkában megjelenő értesítés.
@@ -44,7 +25,7 @@ function makeToast(message: string, title: string): void {
   toastTitle.textContent = title;
   toastMessage.textContent = message;
 
-  const toast = bootstrap.Toast.getOrCreateInstance(toastDiv, config.toast);
+  const toast = Toast.getOrCreateInstance(toastDiv, config.toast);
   toast.show();
 }
 
@@ -139,7 +120,7 @@ function drawTodos(todos: IdTodo[]): void {
           isCompleted: !todo.isCompleted
         } as Todo
       );
-      drawTodos(TodoService.orderByDeadline(await TodoService.getIdTodoList()));
+      drawTodos(order(await TodoService.getIdTodoList()));
     });
     buttonGroup.appendChild(changeCompletedStatus);
 
@@ -193,7 +174,7 @@ function drawTodos(todos: IdTodo[]): void {
     deleteButton.textContent = "Törlés";
     deleteButton.addEventListener("click", async () => {
       await TodoService.editTodo(idTodo.id, {...todo, isDeleted: true} as Todo);
-      drawTodos(TodoService.orderByDeadline(await TodoService.getIdTodoList()));
+      drawTodos(order(await TodoService.getIdTodoList()));
     });
     const deleteListItem = document.createElement("li");
     deleteListItem.appendChild(deleteButton);
@@ -255,6 +236,10 @@ function clearModalInputs(): void {
   (document.getElementById("inTodoDeadline") as HTMLInputElement).value = "";
 }
 
+function order(todos: IdTodo[]): IdTodo[] {
+  return TodoService.orderByStatus(TodoService.orderByPriority(TodoService.orderByDeadline(todos)));
+}
+
 /**
  * Új Todo hozzáadása.
  */
@@ -283,7 +268,7 @@ async function addTodo(): Promise<void> {
     else {
       makeToast("Todo hozzáadása sikertelen!", "Hiba");
     }
-    await drawTodos(TodoService.orderByDeadline(await TodoService.getIdTodoList()));
+    await drawTodos(order(await TodoService.getIdTodoList()));
   }
   else {
     makeToast(`Hibás adato(ka)t tartalmazó mező(k) vannak! [Hibák: ${errorMessages}]`, "Hiba!");
@@ -318,7 +303,7 @@ async function editTodo(): Promise<void> {
     )) {
       makeToast("Todo sikeresen módosítva!", "Siker");
     }
-    await drawTodos(TodoService.orderByDeadline(await TodoService.getIdTodoList()));
+    await drawTodos(order(await TodoService.getIdTodoList()));
   }
   else {
     makeToast("Hibás adato(ka)t tartalmazó mező(k) vannak!", "Hiba");
@@ -345,5 +330,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     modalTodo.show();
   });
 
-  drawTodos(TodoService.orderByDeadline( await TodoService.getIdTodoList()));
+  drawTodos(order( await TodoService.getIdTodoList()));
 });
