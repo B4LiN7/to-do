@@ -2,22 +2,118 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/tasks.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dev</title>
+    <title>Beállítások</title>
 </head>
 <body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg">
     <div class="container">
-        <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
-          
-          <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-            <li><a href="index.html" class="nav-link px-2 link-primary">Főoldal</a></li>
-            <li><a href="settings.html" class="nav-link px-2 link-secondary">Beállitások</a></li>
-            <li><a href="help.html" class="nav-link px-2 link-primary">Segitség</a></li>
-          </ul>
-        </header>
-  
+      <a class="navbar-brand" href="#">ToDo</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link px-2 link-primary">Főoldal</a>
+          </li>
+          <li class="nav-item">
+            <a href="settings.html" class="nav-link px-2 link-secondary">Beállítások</a>
+          </li>
+          <li class="nav-item">
+            <a href="help.html" class="nav-link px-2 link-primary">Segítség</a>
+          </li>
+        </ul>
       </div>
+    </div>
+  </nav>
+  <!-- End of navbar -->
+
+  <!-- Main content -->
+  <div class="container">
+
+    <div class="row">
+      <div class="col-4">
+
+        <h5>Alapértelmezett Todo kártya stílus</h5>
+        <div class="form-floating">
+          <select class="form-select" id="selectDefaultCardStyle">
+            <!-- Code will manipulate this. -->
+          </select>
+          <label for="floatingSelect">Kártya színe:</label>
+        </div>
+
+        <div class="form-floating">
+          <select class="form-select" id="selectDefaultButtonStyle">
+            <!-- Code will manipulate this. -->
+          </select>
+          <label for="floatingSelect">Kártya gombok színei:</label>
+        </div>
+
+      </div>
+
+      <div class="col-4">
+
+        <h5>Kész Todo kártya stílus</h5>
+        <div class="form-floating">
+          <select class="form-select" id="selectCompletedCardStyle">
+            <!-- Code will manipulate this. -->
+          </select>
+          <label for="floatingSelect">Kártya színe:</label>
+        </div>
+
+        <div class="form-floating">
+          <select class="form-select" id="selectCompletedButtonStyle">
+            <!-- Code will manipulate this. -->
+          </select>
+          <label for="floatingSelect">Kártya gombok színei:</label>
+        </div>
+
+      </div>
+
+      <div class="col-4">
+
+        <h5>Lejárt Todo kártya stílus</h5>
+
+        <div class="form-floating">
+          <select class="form-select" id="selectExpiredCardStyle">
+            <!-- Code will manipulate this. -->
+          </select>
+          <label for="floatingSelect">Kártya színe:</label>
+        </div>
+
+        <div class="form-floating">
+          <select class="form-select" id="selectExpiredButtonStyle">
+            <!-- Code will manipulate this. -->
+          </select>
+          <label for="floatingSelect">Kártya gombok színei:</label>
+        </div>
+
+      </div>
+
+        <!--
+        <div class="card" id="cardBody">
+          <div class="card-header">ToDo neve</div>
+          <div class="card-body">
+            <p class="card-text">ToDo leirása. Itt valamivel hosszabb szövegnek kéne lennie.</p>
+            <p class="card-text small">⚠️Prioritás: Közepes ⌛Határidő: 2023. 12. 31. 23:59:59</p>
+          </div>
+          <div class="card-footer text-body-secondary text-end">
+            <div class="btn-group">
+              <button class="btn btn-primary" id="cardChangeButton">Késznek jelölés</button>
+              <button class="btn dropdown-toggle btn-primary" type="button" id="cardOthersButton">Egyéb</button>
+            </div>
+          </div>
+        </div>
+        -->
+
+    </div>
     
-    <script type="module" src="/src/settings.ts"></script>
+  </div>
+  <!-- End of main content -->
+    
+  <script type="module" src="/src/settings.ts"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 
 /**
- * Todo-k adatinak leirása.
+ * Todo-k adatinak leirása a Firestore-ban.
  */
 export interface TodoDTO {
     /**

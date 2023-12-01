@@ -1,94 +1,110 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ToDo</title>
-  </head>
-  <body>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/tasks.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ToDo</title>
+</head>
+<body>
 
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg">
     <div class="container">
-      <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
-        
-        <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-          <li><a href="index.html" class="nav-link px-2 link-secondary">Főoldal</a></li>
-          <li><a href="settings.html" class="nav-link px-2 link-primary">Beállitások</a></li>
-          <li><a href="help.html" class="nav-link px-2 link-primary">Segitség</a></li>
+      <a class="navbar-brand" href="#">ToDo</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link px-2 link-secondary">Főoldal</a>
+          </li>
+          <li class="nav-item">
+            <a href="settings.html" class="nav-link px-2 link-primary">Beállítások</a>
+          </li>
+          <li class="nav-item">
+            <a href="help.html" class="nav-link px-2 link-primary">Segítség</a>
+          </li>
         </ul>
-  
-        <div class="col-md-3 text-end">
-          <button type="button" class="btn btn-primary" id="openModalTodoForAdd">ToDo felvétele</button>
-        </div>
-      </header>
-
-      <div class="row row-cols-1 row-cols-lg-2 row-cols-xxl-3 g-4" id="todoDiv">
-        <!-- Code will manipulate this. -->
       </div>
-
-      <div class="row justify-content-center" id="loadingSpinner">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
+      <div>
+        <button type="button" class="btn btn-primary" id="openModalTodoForAdd">ToDo felvétele</button>
       </div>
-
-      <!-- Modal for adding todo -->
-      <div class="modal fade" id="modalTodo" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="modalTodoTitle">ToDo felvétele</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <form id="formTodo">
-                <div class="mb-3">
-                  <label for="inTodoTitle" class="form-label">Név</label>
-                  <input type="text" class="form-control" id="inTodoTitle" required>
-                </div>
-                <div class="mb-3">
-                  <label for="inTodoDescription" class="form-label">Leírás</label>
-                  <textarea class="form-control" id="inTodoDescription" rows="3" required></textarea>
-                </div>
-                <div class="mb-3">
-                  <label for="inTodoPriority" class="form-label">Prioritás</label>
-                  <select class="form-select" id="inTodoPriority" required>
-                    <option value="1">Alacsony</option>
-                    <option value="2">Közepes</option>
-                    <option value="3">Magas</option>
-                  </select>
-                </div>
-                <div class="mb-3">
-                  <label for="inTodoDeadline" class="form-label">Határidő</label>
-                  <input type="datetime-local" class="form-control" id="inTodoDeadline" required>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
-                <input type="submit" class="btn btn-primary" id="btnSubmitTodo" value="Küldés"></input>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-      <!-- End of modal for adding todo -->
-
-      <!-- Toast for messages -->
-      <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="toastDiv" class="toast fade hide" role="alert" aria-live="assertive" aria-atomic="true">
-          <div class="toast-header">
-            <strong class="me-auto" id="toastTitle">Hello, world!</strong>
-            <small>most</small>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-          <div class="toast-body" id="toastMessage">
-            Hello, world! This is a toast message.
-          </div>
-        </div>
-      </div>
-      <!-- End of toast for messages -->
-
     </div>
-    <script type="module" src="/src/index.ts"></script>
-  </body>
+  </nav>
+  <!-- End of navbar -->
+
+  <!-- Main content -->
+  <div class="container">
+    <div class="row row-cols-1 row-cols-lg-2 row-cols-xxl-3 g-4" id="todoDiv">
+      <!-- Code will manipulate this. -->
+    </div>
+
+    <div class="row justify-content-center" id="loadingSpinner">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+  <!-- End of main content -->
+
+  <!-- Modal for add/edit todo -->
+  <div class="modal fade" id="modalTodo" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="modalTodoTitle">ToDo felvétele</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formTodo">
+            <div class="mb-3">
+              <label for="inTodoTitle" class="form-label">Név</label>
+              <input type="text" class="form-control" id="inTodoTitle" required>
+            </div>
+            <div class="mb-3">
+              <label for="inTodoDescription" class="form-label">Leírás</label>
+              <textarea class="form-control" id="inTodoDescription" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="inTodoPriority" class="form-label">Prioritás</label>
+              <select class="form-select" id="inTodoPriority" required>
+                <option value="1">Alacsony</option>
+                <option value="2">Közepes</option>
+                <option value="3">Magas</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="inTodoDeadline" class="form-label">Határidő</label>
+              <input type="datetime-local" class="form-control" id="inTodoDeadline" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
+            <input type="submit" class="btn btn-primary" id="btnSubmitTodo" value="Küldés"></input>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- End of modal for add/edit todo -->
+
+  <!-- Toast for messages -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toastDiv" class="toast fade hide" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header">
+        <strong class="me-auto" id="toastTitle">Hello, world!</strong>
+        <small>most</small>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body" id="toastMessage">
+        Hello, world! This is a toast message.
+      </div>
+    </div>
+  </div>
+  <!-- End of toast for messages -->
+
+  <script type="module" src="/src/index.ts"></script>
+</body>
 </html>

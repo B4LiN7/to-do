@@ -2,15 +2,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Modal, Toast } from "bootstrap";
 import { TodoService } from "./Todo/TodoService";
 import { Todo, IdTodo } from "./Todo/Todo";
-import { ConfigService } from "./Config/ConfigService";
+import { ConfigurationService } from "./Configuration/ConfigurationService";
 
 // Globális változók
 const loadingSpinner = document.getElementById("loadingSpinner") as HTMLDivElement;
 const modalTodo = new Modal(document.getElementById("modalTodo") as HTMLElement);
-
-
-// Konfigurációs objektumok
-const config = ConfigService.config;
 
 /**
  * Az oldal jobb alsó sarkában megjelenő értesítés.
@@ -18,6 +14,8 @@ const config = ConfigService.config;
  * @param title A toast értesités címe.
  */
 function makeToast(message: string, title: string): void {
+  const config = ConfigurationService.config;
+
   const toastDiv = document.getElementById("toastDiv") as HTMLDivElement;
   const toastTitle = document.getElementById("toastTitle") as HTMLDivElement;
   const toastMessage = document.getElementById("toastMessage") as HTMLDivElement;
@@ -34,6 +32,8 @@ function makeToast(message: string, title: string): void {
  * @param todos Todo-k listája. IdTodo-kat tartalmaz, hogy a gombokat megfelelően lehessen kezelni.
  */
 function drawTodos(todos: IdTodo[]): void {
+  const config = ConfigurationService.config;
+  
   loadingSpinner.style.visibility = "visible";
 
   const todoDiv = document.getElementById("todoDiv") as HTMLDivElement;
@@ -50,13 +50,14 @@ function drawTodos(todos: IdTodo[]): void {
     // Create card
     const card = document.createElement("div");
     card.classList.add("card", "h-100");
-    // If todo is completed, add text-bg-primary class
     if (todo.isCompleted) {
-      card.classList.add("text-bg-primary");
+      card.classList.add(config.cardStyle.cardBody.completed);
     }
-    // If todo is expired, add text-bg-warning class
     else if (todo.deadline < new Date()) {
-      card.classList.add("text-bg-warning");
+      card.classList.add(config.cardStyle.cardBody.expired);
+    }
+    else {
+      card.classList.add(config.cardStyle.cardBody.default);
     }
 
     // Create card header
@@ -280,6 +281,7 @@ async function addTodo(): Promise<void> {
  * Todo módosítása.
  */
 async function editTodo(): Promise<void> {
+  const config = ConfigurationService.config;
   const errorMessages = checkModalInputs();
   if (errorMessages.length === 0) {
     const title = (document.getElementById("inTodoTitle") as HTMLInputElement).value;
@@ -312,8 +314,11 @@ async function editTodo(): Promise<void> {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await ConfigurationService.loadConfig();
+
   document.getElementById("formTodo")?.addEventListener("submit", (event) => {
     event.preventDefault();
+    const config = ConfigurationService.config;
     if (config.editMode.isOn) {
       editTodo();
       config.editMode.isOn = false;
@@ -329,6 +334,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     modalTodoTitle.textContent = "Új Todo hozzáadása";
     modalTodo.show();
   });
-
-  drawTodos(order( await TodoService.getIdTodoList()));
+  
+  drawTodos(order(await TodoService.getIdTodoList()));
 });

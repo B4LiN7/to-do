@@ -1,4 +1,4 @@
-export interface Config {
+export interface Configuration {
   editMode: {
     isOn: boolean;
     id: string;
@@ -21,7 +21,7 @@ export interface Config {
   };
 }
 
-export const defaultConfig = {
+export const defaultConfiguration = {
     editMode: {
         isOn: false,
         id: ""
