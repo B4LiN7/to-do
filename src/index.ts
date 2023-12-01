@@ -1,7 +1,7 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Modal, Toast } from "bootstrap";
-import { TodoService } from "./Todo/TodoService";
 import { Todo, IdTodo } from "./Todo/Todo";
+import { TodoService } from "./Todo/TodoService";
 import { ConfigurationService } from "./Configuration/ConfigurationService";
 
 // Globális változók
@@ -31,10 +31,8 @@ function makeToast(message: string, title: string): void {
  * A Todo-k listájának renderelése.
  * @param todos Todo-k listája. IdTodo-kat tartalmaz, hogy a gombokat megfelelően lehessen kezelni.
  */
-function drawTodos(todos: IdTodo[]): void {
+function renderTodos(todos: IdTodo[]): void {
   const config = ConfigurationService.config;
-  
-  loadingSpinner.style.visibility = "visible";
 
   const todoDiv = document.getElementById("todoDiv") as HTMLDivElement;
   todoDiv.innerHTML = "";
@@ -96,8 +94,6 @@ function drawTodos(todos: IdTodo[]): void {
     // Create button for changing completed status
     const changeCompletedStatus = document.createElement("button");
     changeCompletedStatus.classList.add("btn");
-
-    // ! Ha a todo kész, akkor a gomb szürke lesz, egyébként kék.
     if (todo.isCompleted) {
       changeCompletedStatus.classList.add(config.cardStyle.button.completed);
     }
@@ -121,15 +117,13 @@ function drawTodos(todos: IdTodo[]): void {
           isCompleted: !todo.isCompleted
         } as Todo
       );
-      drawTodos(order(await TodoService.getIdTodoList()));
+      drawTodos();
     });
     buttonGroup.appendChild(changeCompletedStatus);
 
     // Create dropdown button for other buttons
     const dropdownButton = document.createElement("button");
     dropdownButton.classList.add("btn", "dropdown-toggle");
-
-    // ! Ha a todo kész, akkor a gomb szürke lesz, egyébként kék.
     if (todo.isCompleted) {
       dropdownButton.classList.add(config.cardStyle.button.completed);
     }
@@ -158,12 +152,6 @@ function drawTodos(todos: IdTodo[]): void {
       config.editMode.isOn = true;
       config.editMode.id = idTodo.id;
       modalTodo.show();
-      const modalTodoTitle = document.getElementById("modalTodoTitle") as HTMLElement;
-      modalTodoTitle.textContent = "Todo módosítása";
-      (document.getElementById("inTodoTitle") as HTMLInputElement).value = todo.title;
-      (document.getElementById("inTodoDescription") as HTMLInputElement).value = todo.description;
-      (document.getElementById("inTodoPriority") as HTMLInputElement).value = todo.priority.toString();
-      (document.getElementById("inTodoDeadline") as HTMLInputElement).value = todo.deadline.toLocaleString();
     });
     const editListItem = document.createElement("li");
     editListItem.appendChild(editButton);
@@ -175,7 +163,7 @@ function drawTodos(todos: IdTodo[]): void {
     deleteButton.textContent = "Törlés";
     deleteButton.addEventListener("click", async () => {
       await TodoService.editTodo(idTodo.id, {...todo, isDeleted: true} as Todo);
-      drawTodos(order(await TodoService.getIdTodoList()));
+      drawTodos();
     });
     const deleteListItem = document.createElement("li");
     deleteListItem.appendChild(deleteButton);
@@ -196,8 +184,26 @@ function drawTodos(todos: IdTodo[]): void {
     // Add card for column
     todoDiv.appendChild(col);
   });
+}
 
+/**
+ * Todo-k listájának frissítése: lekérdezi a Todo-kat, majd sorba rendezi őket, és végül kirendereli őket. Közben megjeleníti a loading spinnert.
+ */
+async function drawTodos() {
+  loadingSpinner.style.visibility = "visible";
+  const todos = await TodoService.getIdTodoList();
+  const ordered = order(todos);
+  renderTodos(ordered);
   loadingSpinner.style.visibility = "hidden";
+}
+
+/**
+ * Sorba rendezi a Todo-kat.
+ * @param todos Todo-k listája.
+ * @returns Sorba Rendezett Todo-k listája.
+ */
+function order(todos: IdTodo[]): IdTodo[] {
+  return TodoService.orderByStatus(TodoService.orderByPriority(TodoService.orderByDeadline(todos)));
 }
 
 /**
@@ -237,10 +243,6 @@ function clearModalInputs(): void {
   (document.getElementById("inTodoDeadline") as HTMLInputElement).value = "";
 }
 
-function order(todos: IdTodo[]): IdTodo[] {
-  return TodoService.orderByStatus(TodoService.orderByPriority(TodoService.orderByDeadline(todos)));
-}
-
 /**
  * Új Todo hozzáadása.
  */
@@ -269,7 +271,7 @@ async function addTodo(): Promise<void> {
     else {
       makeToast("Todo hozzáadása sikertelen!", "Hiba");
     }
-    await drawTodos(order(await TodoService.getIdTodoList()));
+    await drawTodos();
   }
   else {
     makeToast(`Hibás adato(ka)t tartalmazó mező(k) vannak! [Hibák: ${errorMessages}]`, "Hiba!");
@@ -315,10 +317,10 @@ async function editTodo(): Promise<void> {
 
 document.addEventListener("DOMContentLoaded", async () => {
   await ConfigurationService.loadConfig();
+  const config = ConfigurationService.config;
 
   document.getElementById("formTodo")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    const config = ConfigurationService.config;
     if (config.editMode.isOn) {
       editTodo();
       config.editMode.isOn = false;
@@ -330,10 +332,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("openModalTodoForAdd")?.addEventListener("click", () => {
-    const modalTodoTitle = document.getElementById("modalTodoTitle") as HTMLElement;
-    modalTodoTitle.textContent = "Új Todo hozzáadása";
+    config.editMode.isOn = false;
     modalTodo.show();
   });
+
+  document.getElementById("modalTodo")?.addEventListener("show.bs.modal", async () => {
+    const modalTodoTitle = document.getElementById("modalTodoTitle") as HTMLElement;
+    if (config.editMode.isOn) {
+      modalTodoTitle.textContent = "Todo módosítása";
   
-  drawTodos(order(await TodoService.getIdTodoList()));
+      const todo = await TodoService.getTodoById(config.editMode.id);
+  
+      (document.getElementById("inTodoTitle") as HTMLInputElement).value = todo.title;
+      (document.getElementById("inTodoDescription") as HTMLInputElement).value = todo.description;
+      (document.getElementById("inTodoPriority") as HTMLInputElement).value = todo.priority.toString();
+      (document.getElementById("inTodoDeadline") as HTMLInputElement).value = todo.deadline.toLocaleString();
+    }
+    else {
+      modalTodoTitle.textContent = "Új Todo hozzáadása";
+      clearModalInputs();
+    }
+  });
+
+  drawTodos()
 });
