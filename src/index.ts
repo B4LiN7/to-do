@@ -12,7 +12,7 @@ const modalTodo = new Modal(document.getElementById("modalTodo") as HTMLElement)
  * @param message A toast értesités üzenete.
  * @param title A toast értesités címe.
  */
-function makeToast(message: string, title: string): void {
+export function makeToast(message: string, title: string): void {
   const config = ConfigurationService.config;
 
   const toastDiv = document.getElementById("toastDiv") as HTMLDivElement;
@@ -30,7 +30,7 @@ function makeToast(message: string, title: string): void {
  * A Todo-k listájának renderelése.
  * @param todos Todo-k listája. IdTodo-kat tartalmaz, hogy a gombokat megfelelően lehessen kezelni.
  */
-function renderTodos(todos: IdTodo[]): void {
+export function renderTodos(todos: IdTodo[]): void {
   const config = ConfigurationService.config;
 
   const todoDiv = document.getElementById("todoDiv") as HTMLDivElement;
@@ -76,7 +76,7 @@ function renderTodos(todos: IdTodo[]): void {
     // Create card text for priority and deadline
     const cardPriority = document.createElement("p");
     cardPriority.classList.add("card-text", "small");
-    cardPriority.textContent = "⚠️Prioritás: " + TodoService.getPriorityName(todo.priority) + " ⌛Határidő: " + todo.deadline.toLocaleString();
+    cardPriority.textContent = "⚠️Prioritás: " + TodoService.getPriorityName(todo.priority) + " ⌛Határidő: " + todo.deadline.toLocaleString().slice(0, 19);
     cardBody.appendChild(cardPriority);
 
     // Add cardBody for card
@@ -190,14 +190,14 @@ function renderTodos(todos: IdTodo[]): void {
  * @param todos Todo-k listája.
  * @returns Sorba Rendezett Todo-k listája.
  */
-function order(todos: IdTodo[]): IdTodo[] {
+export function order(todos: IdTodo[]): IdTodo[] {
   return TodoService.orderByCompleted(TodoService.orderByExpire(TodoService.orderByPriority(TodoService.orderByDeadline(todos))));
 }
 
 /**
  * Todo-k listájának frissítése: lekérdezi a Todo-kat, majd sorba rendezi őket, és végül kirendereli őket. Közben megjeleníti a loading spinnert.
  */
-async function drawTodos() {
+export async function drawTodos() {
   const loadingSpinner = document.getElementById("loadingSpinner") as HTMLDivElement;
   loadingSpinner.style.visibility = "visible";
   const todos = await TodoService.getIdTodoList();
@@ -210,7 +210,7 @@ async function drawTodos() {
  * Bemeneti mezők ellenőrzése.
  * @returns Egy tömböt ad vissza, amiben azok a hibák vannak, amiket a bemeneti mezők tartalmaznak.
  */
-function checkModalInputs(): string[] {
+export function checkModalInputs(): string[] {
   const errorMessages: string[] = [];
 
   const titleInput = (document.getElementById("inTodoTitle") as HTMLInputElement);
@@ -236,7 +236,7 @@ function checkModalInputs(): string[] {
 /**
  * Bemeneti mezők kiürítése.
  */
-function clearModalInputs(): void {
+export function clearModalInputs(): void {
   (document.getElementById("inTodoTitle") as HTMLInputElement).value = "";
   (document.getElementById("inTodoDescription") as HTMLInputElement).value = "";
   (document.getElementById("inTodoPriority") as HTMLInputElement).value = "";
@@ -246,7 +246,7 @@ function clearModalInputs(): void {
 /**
  * Új Todo hozzáadása.
  */
-async function addTodo(): Promise<void> {
+export async function addTodo(): Promise<void> {
   const errorMessages = checkModalInputs();
   if (errorMessages.length === 0) {
     const title = (document.getElementById("inTodoTitle") as HTMLInputElement).value;
@@ -281,7 +281,7 @@ async function addTodo(): Promise<void> {
 /**
  * Todo módosítása.
  */
-async function editTodo(): Promise<void> {
+export async function editTodo(): Promise<void> {
   const config = ConfigurationService.config;
   const errorMessages = checkModalInputs();
   if (errorMessages.length === 0) {

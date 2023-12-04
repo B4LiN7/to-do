@@ -12,7 +12,7 @@ const mode = {
 /**
  * Betölti a beállításokat a megfelelő helyre.
  */
-function loadOptions() {
+export function loadOptions() {
     const config = ConfigurationService.config;
     const selectDefaultCardStyle = document.getElementById("selectDefaultCardStyle") as HTMLSelectElement;
     const selectDefaultButtonStyle = document.getElementById("selectDefaultButtonStyle") as HTMLSelectElement;
