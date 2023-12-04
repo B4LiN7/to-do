@@ -187,6 +187,15 @@ function renderTodos(todos: IdTodo[]): void {
 }
 
 /**
+ * Sorba rendezi a Todo-kat.
+ * @param todos Todo-k listája.
+ * @returns Sorba Rendezett Todo-k listája.
+ */
+function order(todos: IdTodo[]): IdTodo[] {
+  return TodoService.orderByStatus(TodoService.orderByPriority(TodoService.orderByDeadline(todos)));
+}
+
+/**
  * Todo-k listájának frissítése: lekérdezi a Todo-kat, majd sorba rendezi őket, és végül kirendereli őket. Közben megjeleníti a loading spinnert.
  */
 async function drawTodos() {
@@ -195,15 +204,6 @@ async function drawTodos() {
   const ordered = order(todos);
   renderTodos(ordered);
   loadingSpinner.style.visibility = "hidden";
-}
-
-/**
- * Sorba rendezi a Todo-kat.
- * @param todos Todo-k listája.
- * @returns Sorba Rendezett Todo-k listája.
- */
-function order(todos: IdTodo[]): IdTodo[] {
-  return TodoService.orderByStatus(TodoService.orderByPriority(TodoService.orderByDeadline(todos)));
 }
 
 /**
@@ -276,7 +276,6 @@ async function addTodo(): Promise<void> {
   else {
     makeToast(`Hibás adato(ka)t tartalmazó mező(k) vannak! [Hibák: ${errorMessages}]`, "Hiba!");
   }
-  clearModalInputs();
 }
 
 /**
@@ -307,12 +306,11 @@ async function editTodo(): Promise<void> {
     )) {
       makeToast("Todo sikeresen módosítva!", "Siker");
     }
-    await drawTodos(order(await TodoService.getIdTodoList()));
+    await drawTodos();
   }
   else {
-    makeToast("Hibás adato(ka)t tartalmazó mező(k) vannak!", "Hiba");
+    makeToast(`Hibás adato(ka)t tartalmazó mező(k) vannak! [Hibák: ${errorMessages}]`, "Hiba");
   }
-  clearModalInputs();
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -340,13 +338,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     const modalTodoTitle = document.getElementById("modalTodoTitle") as HTMLElement;
     if (config.editMode.isOn) {
       modalTodoTitle.textContent = "Todo módosítása";
-  
+      
+      if (! await TodoService.isExist(config.editMode.id)) {
+        makeToast("A módosítani kívánt Todo nem létezik!", "Hiba");
+        config.editMode.isOn = false;
+        ConfigurationService.saveConfig();
+        modalTodo.hide();
+        return;
+      }
+
       const todo = await TodoService.getTodoById(config.editMode.id);
-  
       (document.getElementById("inTodoTitle") as HTMLInputElement).value = todo.title;
       (document.getElementById("inTodoDescription") as HTMLInputElement).value = todo.description;
       (document.getElementById("inTodoPriority") as HTMLInputElement).value = todo.priority.toString();
-      (document.getElementById("inTodoDeadline") as HTMLInputElement).value = todo.deadline.toLocaleString();
+      (document.getElementById("inTodoDeadline") as HTMLInputElement).value = todo.deadline.toISOString().slice(0, 16);
     }
     else {
       modalTodoTitle.textContent = "Új Todo hozzáadása";
@@ -354,5 +359,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  drawTodos()
+  await drawTodos()
+
+  if (config.editMode.isOn) {
+    modalTodo.show();
+  }
+
 });

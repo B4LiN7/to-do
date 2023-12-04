@@ -17,7 +17,18 @@ initializeApp(firebaseConfig);
 const db = getFirestore();
 const colRef = collection(db, "todos");
 
+/**
+ * A Todo-k kezelésére szolgáló osztály/szolgáltatás.
+ */
 export class TodoService {
+    /**
+     * A prioritások nevei.
+     */
+    static priorityNames: { [key: number]: string } = {
+        1: "Alacsony",
+        2: "Közepes",
+        3: "Magas",
+    };
 
     /*
     ! Főbb metódusok.
@@ -35,7 +46,7 @@ export class TodoService {
             snapshot.forEach((doc) => {
                 const id = doc.id;
                 const todoDTO = doc.data() as TodoDTO;
-                const todo = this.convertTodoDtoToTodoDTO(todoDTO);
+                const todo = this.convertTodoDTOToTodo(todoDTO);
                 todos.push({ id: id, todo: todo } as IdTodo);
             });
         } catch (error) {
@@ -55,7 +66,7 @@ export class TodoService {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const todoDTO = docSnap.data() as TodoDTO;
-                const todo = this.convertTodoDtoToTodoDTO(todoDTO);
+                const todo = this.convertTodoDTOToTodo(todoDTO);
                 return todo;
             } else {
                 throw new Error("Todo not found");
@@ -71,7 +82,7 @@ export class TodoService {
      * @returns Igaz/Hamis értékkel tér vissza, attól függően, hogy sikerült-e a létrehozás.
      */
     static async addTodo(newTodo: Todo): Promise<boolean> {
-        const newTodoDTO = this.convertTodoToTodoDto(newTodo);
+        const newTodoDTO = this.convertTodoToTodoDTO(newTodo);
         return addDoc(colRef, newTodoDTO)
             .then(() => true)
             .catch((error) => {
@@ -89,10 +100,10 @@ export class TodoService {
         try {
             const docRef = doc(db, "todos", id);
             await deleteDoc(docRef);
-            return true; // Delete successful
+            return true;
         } catch (error) {
             console.error("Error deleting todo:", error);
-            return false; // Delete failed
+            return false;
         }
     }
     
@@ -105,7 +116,7 @@ export class TodoService {
     static async editTodo(id: string, updatedTodo: Todo): Promise<boolean> {
         try {
             updatedTodo.editDate = new Date();
-            const updatedTodoDTO = this.convertTodoToTodoDto(updatedTodo);
+            const updatedTodoDTO = this.convertTodoToTodoDTO(updatedTodo);
             const docRef = doc(db, "todos", id);
             // @ts-ignore
             await updateDoc(docRef, updatedTodoDTO);
@@ -122,50 +133,73 @@ export class TodoService {
     ! Ezért a Todo-kat a TodoDTO-ként tároljuk, és a konverziókat a két típus között a TodoService végzi. Ebben segit a convertDateToTimestamp és a convertTimestampToDate metódus.
     */
 
-     static convertTodoToTodoDto(todo: Todo): TodoDTO {
+    /**
+     * A Todo-ból csinál TodoDTO-t.
+     * @param todo Todo.
+     * @returns TodoDTO.
+     */
+     static convertTodoToTodoDTO(todo: Todo): TodoDTO {
         const todoDTO = {
             title: todo.title,
             description: todo.description,
             priority: todo.priority,
-            deadline: this.convertDateToTimestamp(todo.deadline),
+            deadline: Timestamp.fromDate(todo.deadline),
             isCompleted: todo.isCompleted,
             isDeleted: todo.isDeleted,
-            addDate: this.convertDateToTimestamp(todo.addDate),
-            editDate: this.convertDateToTimestamp(todo.editDate),
+            addDate: Timestamp.fromDate(todo.addDate),
+            editDate: Timestamp.fromDate(todo.editDate),
         } as TodoDTO;
         return todoDTO;
     }
 
-    static convertTodoDtoToTodoDTO(todoDTO: TodoDTO): Todo {
+    /**
+     * A TodoDTO-ból csinál Todo-t.
+     * @param todoDTO TodoDTO.
+     * @returns Todo.
+     */
+    static convertTodoDTOToTodo(todoDTO: TodoDTO): Todo {
         const todo = {
             title: todoDTO.title,
             description: todoDTO.description,
             priority: todoDTO.priority,
-            deadline: this.convertTimestampToDate(todoDTO.deadline),
+            deadline: todoDTO.deadline.toDate(),
             isCompleted: todoDTO.isCompleted,
             isDeleted: todoDTO.isDeleted,
-            addDate: this.convertTimestampToDate(todoDTO.addDate),
-            editDate: this.convertTimestampToDate(todoDTO.editDate),
+            addDate: todoDTO.addDate.toDate(),
+            editDate: todoDTO.editDate.toDate(),
         } as Todo;
         return todo;
-    }
-
-    static convertDateToTimestamp(date: Date): Timestamp {
-        const jsDate = date;
-        const firebaseTimestamp = Timestamp.fromDate(jsDate);
-        return firebaseTimestamp;
-    }
-
-    static convertTimestampToDate(timestamp: Timestamp): Date {
-        const firebaseTimestamp = timestamp;
-        const jsDate = firebaseTimestamp.toDate();
-        return jsDate;
     }
 
     /*
     ! Segédmetódusok.
     ! Ezeket a metódusokat néhény funkció egyszerűsítésére használjuk.
     */
+   
+    /**
+     * Megnézi, hogy létezik-e a Todo az adatbázisban.
+     * @param todo A Todo vagy az azonosítója.
+     * @returns Igaz/Hamis értékkel tér vissza, attól függően, hogy létezik-e a Todo.
+     */
+    static async isExist(todo: IdTodo | string): Promise<boolean> {
+        if (typeof todo === "string") {
+            try {
+                await this.getTodoById(todo);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+        else if (typeof todo === "object") {
+            try {
+                await this.getTodoById(todo.id);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+        return false;
+    }
 
     /**
      * Todo határidejének lejárati idejét ellenőrzi.
@@ -182,17 +216,10 @@ export class TodoService {
      * @returns A proiritás neve: Alacsony, Közepes vagy Magas.
      */
     static getPriorityName(priority: number): string {
-        switch (priority) {
-        case 1:
-            return "Alacsony";
-        case 2:
-            return "Közepes";
-        case 3:
-            return "Magas";
-        default:
-            return "Ismertelen";
-        }
+        return this.priorityNames[priority] || "Ismertelen";
     }
+
+    
 
     /**
      * Határidő szerint sorba rendezi a Todo-k listáját.
@@ -256,33 +283,83 @@ export class TodoService {
     ! Elsősorban kisérleti célokat szolgálnak.
     */
 
+    /**
+     * Véglegesen törli a todos tábla adatbázist összes elemét
+     * @returns Igaz/Hamis értékkel tér vissza, attól függően, hogy sikerült-e a törlés.
+     */
     static async dropDatabase(): Promise<boolean> {
-        const todos = await this.getIdTodoList();
-        for (const todo of todos) {
-            await this.deleteTodo(todo.id);
+        try {
+            const todos = await this.getIdTodoList();
+            for (const todo of todos) {
+                await this.deleteTodo(todo.id);
+            }
+            return true;
         }
-        return true;
+        catch (error) {
+            console.error("Error dropping database: ", error);
+            return false;
+        }
     }
 
+    /**
+     * Véglelgesen törli az összes törölt jelölt Todo-t.
+     * @returns Igaz/Hamis értékkel tér vissza, attól függően, hogy sikerült-e a törlés.
+     */
+    static async dropAllDeletedTodos(): Promise<boolean> {
+        try {
+            const todos = await this.getIdTodoList();
+            for (const todo of todos) {
+                if (todo.todo.isDeleted) {
+                    await this.deleteTodo(todo.id);
+                }
+            }
+            return true;
+        }
+        catch (error) {
+            console.error("Error dropping deleted todos: ", error);
+            return false;
+        }
+    }
+
+    /**
+     * A törölt Todo-kat visszaállítja.
+     * @returns Igaz/Hamis értékkel tér vissza, attól függően, hogy sikerült-e a visszaállítás.
+     */
     static async undeleteAllTodos(): Promise<boolean> {
-        const todos = await this.getIdTodoList();
-        for (const todo of todos) {
-            if (todo.todo.isDeleted) {
-                todo.todo.isDeleted = false;
-                await this.editTodo(todo.id, todo.todo);
+        try {
+            const todos = await this.getIdTodoList();
+            for (const todo of todos) {
+                if (todo.todo.isDeleted) {
+                    todo.todo.isDeleted = false;
+                    await this.editTodo(todo.id, todo.todo);
+                }
             }
+            return true;
+        } 
+        catch (error) {
+            console.error("Error undeleting todo: ", error);
+            return false;
         }
-        return true;
     }
 
+    /**
+     * Törli az összes Todo-t. (Nem végleges)
+     * @returns Igaz/Hamis értékkel tér vissza, attól függően, hogy sikerült-e a törlés.
+     */
     static async deleteAllTodos(): Promise<boolean> {
-        const todos = await this.getIdTodoList();
-        for (const todo of todos) {
-            if (!todo.todo.isDeleted) {
-                todo.todo.isDeleted = true;
-                await this.editTodo(todo.id, todo.todo);
+        try {
+            const todos = await this.getIdTodoList();
+            for (const todo of todos) {
+                if (!todo.todo.isDeleted) {
+                    todo.todo.isDeleted = true;
+                    await this.editTodo(todo.id, todo.todo);
+                }
             }
+            return true;
         }
-        return true;
+        catch (error) {
+            console.error("Error deleting todo: ", error);
+            return false;
+        }
     }
 }

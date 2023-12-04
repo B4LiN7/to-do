@@ -35,6 +35,10 @@
   <div class="container">
 
     <div class="row">
+      <h1 class="title">Todo kártya beállítások</h1>
+    </div>
+
+    <div class="row">
       <div class="col-4">
 
         <h5>Alapértelmezett Todo kártya stílus</h5>
@@ -93,26 +97,46 @@
 
       </div>
 
-        <!--
-        <div class="card" id="cardBody">
-          <div class="card-header">ToDo neve</div>
-          <div class="card-body">
-            <p class="card-text">ToDo leirása. Itt valamivel hosszabb szövegnek kéne lennie.</p>
-            <p class="card-text small">⚠️Prioritás: Közepes ⌛Határidő: 2023. 12. 31. 23:59:59</p>
-          </div>
-          <div class="card-footer text-body-secondary text-end">
-            <div class="btn-group">
-              <button class="btn btn-primary" id="cardChangeButton">Késznek jelölés</button>
-              <button class="btn dropdown-toggle btn-primary" type="button" id="cardOthersButton">Egyéb</button>
-            </div>
-          </div>
-        </div>
-        -->
+    </div>
+
+    <div class="row">
+
+      <h1>Debug</h1>
+
+    </div>
+
+    <div class="row">
+
+      <div class="col">
+        <button type="button" class="btn btn-primary" id="btnRecoverDeleted">Töröltek visszaállítása</button>
+        <button type="button" class="btn btn-primary" id="btnDeleteDeleted">Töröltek végleges törlése</button>
+      </div>
 
     </div>
     
   </div>
   <!-- End of main content -->
+
+  <!-- Modal for asking user -->
+  <div class="modal fade" id="modalConfirm" tabindex="-1" role="dialog"
+    aria-labelledby="confirmRecoveryModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalConfirmTitle">Töröltek visszaállítása</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalConfirmMessage">
+          Biztosan vissza szeretnéd állítani a törölt elemeket?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
+          <button type="button" class="btn btn-primary" id="modalConfirmButton">Visszaállítás</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- End of modal for asking user -->
     
   <script type="module" src="/src/settings.ts"></script>
 </body>

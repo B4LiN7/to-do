@@ -32,7 +32,7 @@ export const defaultConfiguration = {
     },
     cardStyle: {
         cardBody: {
-            default: "text-bg-white",
+            default: "text-bg-light",
             completed: "text-bg-primary",
             expired: "text-bg-warning"
         },

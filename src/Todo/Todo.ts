@@ -1,42 +1,51 @@
 /**
- * Todo-k adatinak leirása.
+ * Todo adati.
  */
 export interface Todo {
     /**
-     * A teendő címe.
+     * A Todo neve/címe.
      */
     title: string;
     /**
-     * A teendő leírása.
+     * A Todo leírása.
      */
     description: string;
     /**
-     * A teendő prioritása. 1-3 közötti szám.
+     * A Todo prioritása. 1-3 közötti szám.
      */
     priority: number;
     /**
-     * A teendő határideje.
+     * A Todo határideje.
      */
     deadline: Date;
     /**
-     * A teendő státusza. Igaz, ha kész.
+     * A Todo státusza. Igaz, ha kész.
      */
     isCompleted: boolean;
     /**
-     * A teendő státusza. Igaz, ha törölt. Nem jelenik meg
+     * A Todo státusza. Igaz, ha törölve van.
      */
     isDeleted: boolean;
     /**
-     * A teendő hozzáadásának dátuma.
+     * A Todo hozzáadásának dátuma.
      */
     addDate: Date;
     /**
-     * A teendő utolsó módosításának dátuma.
+     * A Todo utolsó módosításának dátuma.
      */
     editDate: Date;
 }
 
+/**
+ * A Todo adatai a firebase-es azonosítóval.
+ */
 export interface IdTodo {
+    /**
+     * A Todo azonosítója.
+     */
     id: string;
+    /**
+     * A Todo maga.
+     */
     todo: Todo;
 }

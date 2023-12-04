@@ -1,6 +1,13 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap.min.js";
+import { Modal } from "bootstrap";
 import { ConfigurationService } from "./Configuration/ConfigurationService";
+import { TodoService } from "./Todo/TodoService";
+
+const modalConfirm = new Modal(document.getElementById("modalConfirm") as HTMLDivElement);
+const mode = {
+    isDelete: false,
+    isRecover: false,
+}
 
 function loadOptions() {
     const config = ConfigurationService.config;
@@ -95,4 +102,39 @@ document.addEventListener("DOMContentLoaded", async () => {
         ConfigurationService.setExpiredCardButtonStyleByValue((event.target as HTMLSelectElement).value);
         ConfigurationService.saveConfig();
     }); 
+
+
+    document.getElementById("btnRecoverDeleted")?.addEventListener("click", () => {
+        const modalConfirmTitle = document.getElementById("modalConfirmTitle") as HTMLDivElement;
+        const modalConfirmMessage = document.getElementById("modalConfirmMessage") as HTMLDivElement;
+        modalConfirmTitle.innerText = "Összes törölt todo visszaállítása";
+        modalConfirmMessage.innerText = "Biztos, hogy az összes törölt todo-t visszaállítod?";
+
+        mode.isRecover = true;
+        modalConfirm.show();
+    });
+
+    document.getElementById("btnDeleteDeleted")?.addEventListener("click", () => {
+        const modalConfirmTitle = document.getElementById("modalConfirmTitle") as HTMLDivElement;
+        const modalConfirmMessage = document.getElementById("modalConfirmMessage") as HTMLDivElement;
+        modalConfirmTitle.innerText = "Összes törölt todo törlése";
+        modalConfirmMessage.innerText = "Biztos, hogy az összes törölt todo-t véglegesen törölni szeretnéd?";
+
+        mode.isDelete = true;
+        modalConfirm.show();
+    });
+
+    document.getElementById("modalConfirmButton")?.addEventListener("click", () => {
+        if (mode.isRecover) {
+
+            TodoService.undeleteAllTodos();
+        } 
+        else if (mode.isDelete) {
+            TodoService.dropAllDeletedTodos();
+        }
+
+        modalConfirm.hide();
+        mode.isRecover = false;
+        mode.isDelete = false;
+    });
 });

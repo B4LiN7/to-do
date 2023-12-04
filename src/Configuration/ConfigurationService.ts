@@ -19,7 +19,8 @@ export class ConfigurationService {
         const cookie = await this.loadCookie();
         if (cookie) {
             this.config = cookie;
-        } else {        
+        } 
+        else {        
             this.setDefaultConfig();
             await this.saveConfig();
         }
@@ -54,6 +55,9 @@ export class ConfigurationService {
         Cookies.set('config', JSON.stringify(config));
     }
 
+    /**
+     * Todo kártya stílusok.
+     */
     static cardButtonStyles: { [key: string]: string } = {
         "Kék": "btn-primary",
         "Szürke": "btn-secondary",
@@ -63,14 +67,14 @@ export class ConfigurationService {
         "Világoskék": "btn-info",
         "Fehér": "btn-light",
         "Fekete": "btn-dark",
-        "Outline Kék": "btn-outline-primary",
-        "Outline Szürke": "btn-outline-secondary",
-        "Outline Zöld": "btn-outline-success",
-        "Outline Piros": "btn-outline-danger",
-        "Outline Sárga": "btn-outline-warning",
-        "Outline Világoskék": "btn-outline-info",
-        "Outline Fehér": "btn-outline-light",
-        "Outline Fekete": "btn-outline-dark"
+        "Kék körvonal": "btn-outline-primary",
+        "Szürke körvonal": "btn-outline-secondary",
+        "Zöld körvonal": "btn-outline-success",
+        "Piros körvonal": "btn-outline-danger",
+        "Sárga körvonal": "btn-outline-warning",
+        "Világoskék körvonal": "btn-outline-info",
+        "Fehér körvonal": "btn-outline-light",
+        "Fekete körvonal": "btn-outline-dark"
     };
 
     /**
@@ -96,6 +100,9 @@ export class ConfigurationService {
     }
 
 
+    /**
+     * Todo gomb stílusok.
+     */
     static cardBodyStyles: { [key: string]: string } = {
         "Kék": "text-bg-primary",
         "Szürke": "text-bg-secondary",
