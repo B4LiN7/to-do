@@ -245,12 +245,31 @@ export class TodoService {
      * @param todo Todo-k listája.
      * @returns Sorba rendezett Todo-k listája.
      */
-    static orderByStatus(todo: IdTodo[]): IdTodo[] {
+    static orderByExpire(todo: IdTodo[]): IdTodo[] {
         return todo.sort((a, b) => {
             if (TodoService.isDeadlineExpired(a.todo) && !TodoService.isDeadlineExpired(b.todo)) {
                 return 1;
             }
             else if (!TodoService.isDeadlineExpired(a.todo) && TodoService.isDeadlineExpired(b.todo)) {
+                return -1;
+            }
+            else {
+                return 0;
+            }
+        });
+    }
+
+    /**
+     * Kész állapot szerint sorba rendezi a Todo-k listáját.
+     * @param todo Todo-k listája.
+     * @returns Sorba rendezett Todo-k listája.
+     */
+    static orderByCompleted(todo: IdTodo[]): IdTodo[] {
+        return todo.sort((a, b) => {
+            if (a.todo.isCompleted && !b.todo.isCompleted) {
+                return 1;
+            }
+            else if (!a.todo.isCompleted && b.todo.isCompleted) {
                 return -1;
             }
             else {

@@ -5,7 +5,6 @@ import { TodoService } from "./Todo/TodoService";
 import { ConfigurationService } from "./Configuration/ConfigurationService";
 
 // Globális változók
-const loadingSpinner = document.getElementById("loadingSpinner") as HTMLDivElement;
 const modalTodo = new Modal(document.getElementById("modalTodo") as HTMLElement);
 
 /**
@@ -192,13 +191,14 @@ function renderTodos(todos: IdTodo[]): void {
  * @returns Sorba Rendezett Todo-k listája.
  */
 function order(todos: IdTodo[]): IdTodo[] {
-  return TodoService.orderByStatus(TodoService.orderByPriority(TodoService.orderByDeadline(todos)));
+  return TodoService.orderByCompleted(TodoService.orderByExpire(TodoService.orderByPriority(TodoService.orderByDeadline(todos))));
 }
 
 /**
  * Todo-k listájának frissítése: lekérdezi a Todo-kat, majd sorba rendezi őket, és végül kirendereli őket. Közben megjeleníti a loading spinnert.
  */
 async function drawTodos() {
+  const loadingSpinner = document.getElementById("loadingSpinner") as HTMLDivElement;
   loadingSpinner.style.visibility = "visible";
   const todos = await TodoService.getIdTodoList();
   const ordered = order(todos);

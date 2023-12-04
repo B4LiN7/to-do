@@ -9,6 +9,9 @@ const mode = {
     isRecover: false,
 }
 
+/**
+ * Betölti a beállításokat a megfelelő helyre.
+ */
 function loadOptions() {
     const config = ConfigurationService.config;
     const selectDefaultCardStyle = document.getElementById("selectDefaultCardStyle") as HTMLSelectElement;
@@ -126,13 +129,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("modalConfirmButton")?.addEventListener("click", () => {
         if (mode.isRecover) {
-
             TodoService.undeleteAllTodos();
         } 
         else if (mode.isDelete) {
             TodoService.dropAllDeletedTodos();
         }
-
         modalConfirm.hide();
         mode.isRecover = false;
         mode.isDelete = false;
