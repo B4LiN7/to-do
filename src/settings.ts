@@ -138,4 +138,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         mode.isRecover = false;
         mode.isDelete = false;
     });
+
+    if (ConfigurationService.config.darkMode) {
+        document.querySelector('body')?.setAttribute('data-bs-theme', 'dark');
+    }
+    else {
+        document.querySelector('body')?.setAttribute('data-bs-theme', 'white');
+    }
 });

@@ -359,6 +359,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  if (config.darkMode) {
+    document.querySelector('body')?.setAttribute('data-bs-theme', 'dark');
+  }
+  else {
+    document.querySelector('body')?.setAttribute('data-bs-theme', 'white');
+  }
+
   await drawTodos()
 
   if (config.editMode.isOn) {

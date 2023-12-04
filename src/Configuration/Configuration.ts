@@ -1,4 +1,5 @@
 export interface Configuration {
+  darkMode: boolean;
   editMode: {
     isOn: boolean;
     id: string;
@@ -22,6 +23,7 @@ export interface Configuration {
 }
 
 export const defaultConfiguration = {
+    darkMode: false,
     editMode: {
         isOn: false,
         id: ""

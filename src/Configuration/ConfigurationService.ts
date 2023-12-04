@@ -16,7 +16,7 @@ export class ConfigurationService {
      * Konfiguráció betöltése.
      */
     static async loadConfig(): Promise<void> {
-        const cookie = await this.loadCookie();
+        const cookie = await this.loadCookies();
         if (cookie) {
             this.config = cookie;
         } 
@@ -30,7 +30,7 @@ export class ConfigurationService {
      * Konfiguráció mentése.
      */
     static async saveConfig(): Promise<void> {
-        await this.saveCookie(this.config);
+        await this.saveCookies(this.config);
     }
 
     /**
@@ -48,11 +48,49 @@ export class ConfigurationService {
     }
 
     /**
+     * Sütiből betöltött konfiguráció. Külön-külön betöltés.
+     * @returns Konfiguráció.
+     */
+    static async loadCookies(): Promise<Configuration | null> {
+        try {
+            const darkMode = JSON.parse(Cookies.get('darkMode'));
+            const editMode = JSON.parse(Cookies.get('editMode'));
+            const toast = JSON.parse(Cookies.get('toast'));
+            const cardStyle = JSON.parse(Cookies.get('cardStyle'));
+            const config = {
+                darkMode: darkMode,
+                editMode: editMode,
+                toast: toast,
+                cardStyle: cardStyle
+            } as Configuration;
+            return config;
+        }
+        catch (error) {
+            return null;
+        }
+    }
+
+    /**
      * Sütibe mentés.
      * @param config Konfiguráció.
      */
     static async saveCookie(config: Configuration): Promise<void> {
         Cookies.set('config', JSON.stringify(config));
+    }
+
+    /**
+     * Sütibe mentés. Külön-külön mentés.
+     * @param config Konfiguráció.
+     */
+    static async saveCookies(config: Configuration): Promise<void> {
+        const darkMode = config.darkMode;
+        const editMode = config.editMode;
+        const toast = config.toast;
+        const cardStyle = config.cardStyle;
+        Cookies.set('darkMode', JSON.stringify(darkMode));
+        Cookies.set('editMode', JSON.stringify(editMode));
+        Cookies.set('toast', JSON.stringify(toast));
+        Cookies.set('cardStyle', JSON.stringify(cardStyle));
     }
 
     /**
