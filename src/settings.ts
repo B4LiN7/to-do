@@ -127,6 +127,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         modalConfirm.show();
     });
 
+    document.getElementById("btnChangeDarkMode")?.addEventListener("click", () => {
+        if (ConfigurationService.config.darkMode) {
+            ConfigurationService.config.darkMode = false;
+            ConfigurationService.saveConfig();
+            document.querySelector('body')?.setAttribute('data-bs-theme', 'white');
+            (document.getElementById("btnChangeDarkMode") as HTMLButtonElement).innerText = "Sötét mód";
+        }
+        else {
+            ConfigurationService.config.darkMode = true;
+            ConfigurationService.saveConfig();
+            document.querySelector('body')?.setAttribute('data-bs-theme', 'dark');
+            (document.getElementById("btnChangeDarkMode") as HTMLButtonElement).innerText = "Világos mód";
+        }   
+    });
+
     document.getElementById("modalConfirmButton")?.addEventListener("click", () => {
         if (mode.isRecover) {
             TodoService.undeleteAllTodos();
@@ -141,8 +156,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (ConfigurationService.config.darkMode) {
         document.querySelector('body')?.setAttribute('data-bs-theme', 'dark');
+        (document.getElementById("btnChangeDarkMode") as HTMLButtonElement).innerText = "Világos mód";
     }
     else {
         document.querySelector('body')?.setAttribute('data-bs-theme', 'white');
+        (document.getElementById("btnChangeDarkMode") as HTMLButtonElement).innerText = "Sötét mód";
     }
 });

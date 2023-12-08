@@ -1,6 +1,4 @@
 import { Configuration, defaultConfiguration } from "./Configuration";
-// @ts-ignore
-import Cookies from "js-cookie";
 
 export class ConfigurationService {
     static config: Configuration;
@@ -15,82 +13,32 @@ export class ConfigurationService {
     /**
      * Konfiguráció betöltése.
      */
-    static async loadConfig(): Promise<void> {
-        const cookie = await this.loadCookies();
-        if (cookie) {
-            this.config = cookie;
+    static loadConfig(): void {
+        const lconfig = this.loadFromLocalStorage();
+        if (lconfig) {
+            this.config = lconfig;
         } 
         else {        
             this.setDefaultConfig();
-            await this.saveConfig();
+            this.saveConfig();
         }
     }
 
     /**
      * Konfiguráció mentése.
      */
-    static async saveConfig(): Promise<void> {
-        await this.saveCookies(this.config);
+    static saveConfig(): void {
+        this.saveToLocalStorage(this.config);
     }
 
-    /**
-     * Sütiből betöltött konfiguráció.
-     * @returns Konfiguráció.
-     */
-    static async loadCookie(): Promise<Configuration | null> {
-        const config = Cookies.get('config');
-        if (config) {
-            return JSON.parse(config);
-        }
-        else {
-            return null;
-        }
+    static saveToLocalStorage(config: Configuration) {
+        const configJson = JSON.stringify(config);
+        localStorage.setItem("config", configJson);
     }
 
-    /**
-     * Sütiből betöltött konfiguráció. Külön-külön betöltés.
-     * @returns Konfiguráció.
-     */
-    static async loadCookies(): Promise<Configuration | null> {
-        try {
-            const darkMode = JSON.parse(Cookies.get('darkMode'));
-            const editMode = JSON.parse(Cookies.get('editMode'));
-            const toast = JSON.parse(Cookies.get('toast'));
-            const cardStyle = JSON.parse(Cookies.get('cardStyle'));
-            const config = {
-                darkMode: darkMode,
-                editMode: editMode,
-                toast: toast,
-                cardStyle: cardStyle
-            } as Configuration;
-            return config;
-        }
-        catch (error) {
-            return null;
-        }
-    }
-
-    /**
-     * Sütibe mentés.
-     * @param config Konfiguráció.
-     */
-    static async saveCookie(config: Configuration): Promise<void> {
-        Cookies.set('config', JSON.stringify(config));
-    }
-
-    /**
-     * Sütibe mentés. Külön-külön mentés.
-     * @param config Konfiguráció.
-     */
-    static async saveCookies(config: Configuration): Promise<void> {
-        const darkMode = config.darkMode;
-        const editMode = config.editMode;
-        const toast = config.toast;
-        const cardStyle = config.cardStyle;
-        Cookies.set('darkMode', JSON.stringify(darkMode));
-        Cookies.set('editMode', JSON.stringify(editMode));
-        Cookies.set('toast', JSON.stringify(toast));
-        Cookies.set('cardStyle', JSON.stringify(cardStyle));
+    static loadFromLocalStorage(): Configuration {
+        const configJson = localStorage.getItem("config") as string;
+        return JSON.parse(configJson) as Configuration;
     }
 
     /**
