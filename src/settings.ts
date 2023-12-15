@@ -3,10 +3,22 @@ import { Modal } from "bootstrap";
 import { ConfigurationService } from "./Configuration/ConfigurationService";
 import { TodoService } from "./Todo/TodoService";
 
-const modalConfirm = new Modal(document.getElementById("modalConfirm") as HTMLDivElement);
-const mode = {
+const confirmModal = new Modal(document.getElementById("modalConfirm") as HTMLDivElement);
+const confirmMode = {
     isDelete: false,
     isRecover: false,
+}
+
+/**
+ * Modal üzenet beállítása.
+ * @param message Üzenet
+ * @param title Cím
+ */
+export function setConfirmModal(message: string, title: string) {
+    const modalConfirmTitle = document.getElementById("modalConfirmTitle") as HTMLDivElement;
+    const modalConfirmMessage = document.getElementById("modalConfirmMessage") as HTMLDivElement;
+    modalConfirmTitle.innerText = title;
+    modalConfirmMessage.innerText = message;
 }
 
 /**
@@ -123,23 +135,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     document.getElementById("btnRecoverDeleted")?.addEventListener("click", () => {
-        const modalConfirmTitle = document.getElementById("modalConfirmTitle") as HTMLDivElement;
-        const modalConfirmMessage = document.getElementById("modalConfirmMessage") as HTMLDivElement;
-        modalConfirmTitle.innerText = "Összes törölt todo visszaállítása";
-        modalConfirmMessage.innerText = "Biztos, hogy az összes törölt todo-t visszaállítod?";
-
-        mode.isRecover = true;
-        modalConfirm.show();
+        setConfirmModal("Biztos, hogy az összes törölt todo-t visszaállítod?", "Összes törölt todo visszaállítása");
+        confirmMode.isRecover = true;
+        confirmModal.show();
     });
 
     document.getElementById("btnDeleteDeleted")?.addEventListener("click", () => {
-        const modalConfirmTitle = document.getElementById("modalConfirmTitle") as HTMLDivElement;
-        const modalConfirmMessage = document.getElementById("modalConfirmMessage") as HTMLDivElement;
-        modalConfirmTitle.innerText = "Összes törölt todo törlése";
-        modalConfirmMessage.innerText = "Biztos, hogy az összes törölt todo-t véglegesen törölni szeretnéd?";
-
-        mode.isDelete = true;
-        modalConfirm.show();
+        setConfirmModal("Biztos, hogy az összes törölt todo-t véglegesen törölni szeretnéd?", "Összes törölt todo törlése");
+        confirmMode.isDelete = true;
+        confirmModal.show();
     });
 
     document.getElementById("btnChangeDarkMode")?.addEventListener("click", () => {
@@ -157,15 +161,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     document.getElementById("modalConfirmButton")?.addEventListener("click", () => {
-        if (mode.isRecover) {
+        if (confirmMode.isRecover) {
             TodoService.undeleteAllTodos();
         } 
-        else if (mode.isDelete) {
+        else if (confirmMode.isDelete) {
             TodoService.dropAllDeletedTodos();
         }
-        modalConfirm.hide();
-        mode.isRecover = false;
-        mode.isDelete = false;
+        confirmModal.hide();
+        confirmMode.isRecover = false;
+        confirmMode.isDelete = false;
     });
 
     if (ConfigurationService.config.darkMode) {

@@ -90,6 +90,27 @@
   </div>
   <!-- End of modal for add/edit todo -->
 
+  <!-- Modal for asking user -->
+  <div class="modal fade" id="modalConfirm" tabindex="-1" role="dialog"
+  aria-labelledby="confirmRecoveryModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalConfirmTitle">Töröltek visszaállítása</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalConfirmMessage">
+          Biztosan vissza szeretnéd állítani a törölt elemeket?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
+          <button type="button" class="btn btn-primary" id="modalConfirmButton">Igen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+ <!-- End of modal for asking user -->
+
   <!-- Toast for messages -->
   <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="toastDiv" class="toast fade hide" role="alert" aria-live="assertive" aria-atomic="true">

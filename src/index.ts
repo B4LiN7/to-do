@@ -5,7 +5,14 @@ import { TodoService } from "./Todo/TodoService";
 import { ConfigurationService } from "./Configuration/ConfigurationService";
 
 // Globális változók
-const modalTodo = new Modal(document.getElementById("modalTodo") as HTMLElement);
+const todoModal = new Modal(document.getElementById("modalTodo") as HTMLElement);
+const confirmModal = new Modal(document.getElementById("modalConfirm") as HTMLDivElement);
+const confirmMode = {
+  isDelete: {
+    isOn: false,
+    id: ""
+  },
+}
 
 /**
  * Az oldal jobb alsó sarkában megjelenő értesítés.
@@ -26,6 +33,17 @@ export function makeToast(message: string, title: string): void {
   toast.show();
 }
 
+/**
+ * Modal üzenet beállítása.
+ * @param message Üzenet
+ * @param title Cím
+ */
+export function setConfirmModal(message: string, title: string) {
+  const modalConfirmTitle = document.getElementById("modalConfirmTitle") as HTMLDivElement;
+  const modalConfirmMessage = document.getElementById("modalConfirmMessage") as HTMLDivElement;
+  modalConfirmTitle.innerText = title;
+  modalConfirmMessage.innerText = message;
+}
 /**
  * A Todo-k listájának renderelése.
  * @param todos Todo-k listája. IdTodo-kat tartalmaz, hogy a gombokat megfelelően lehessen kezelni.
@@ -151,7 +169,7 @@ export function renderTodos(todos: IdTodo[]): void {
       config.editMode.isOn = true;
       config.editMode.id = idTodo.id;
       ConfigurationService.saveConfig();
-      modalTodo.show();
+      todoModal.show();
     });
     const editListItem = document.createElement("li");
     editListItem.appendChild(editButton);
@@ -162,13 +180,10 @@ export function renderTodos(todos: IdTodo[]): void {
     deleteButton.classList.add("dropdown-item");
     deleteButton.textContent = "Törlés";
     deleteButton.addEventListener("click", async () => {
-      if (await TodoService.editTodo(idTodo.id, {...todo, isDeleted: true} as Todo)) {
-        makeToast("Todo sikeresen törölve!", "Siker");
-      }
-      else {
-        makeToast("Todo törlése sikertelen!", "Hiba");
-      }
-      drawTodos();
+      setConfirmModal(`Biztos, hogy törölni szeretnéd a(z) ${todo.title} című todo-t?`, "Todo törlése");
+      confirmMode.isDelete.isOn = true;
+      confirmMode.isDelete.id = idTodo.id;
+      confirmModal.show();
     });
     const deleteListItem = document.createElement("li");
     deleteListItem.appendChild(deleteButton);
@@ -340,13 +355,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     else {
       addTodo();
     }
-    modalTodo.hide();
+    todoModal.hide();
   });
 
   // Todo hozzáadás gomb kezelése
   document.getElementById("openModalTodoForAdd")?.addEventListener("click", () => {
     config.editMode.isOn = false;
-    modalTodo.show();
+    todoModal.show();
   });
 
   // Modal megjelenítésekor a megfelelő cím és mezők beállítása, ha van módosítandó Todo, egyébként bemeneti mezők kiürítése
@@ -359,7 +374,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         makeToast("A módosítani kívánt Todo nem létezik!", "Hiba");
         config.editMode.isOn = false;
         ConfigurationService.saveConfig();
-        modalTodo.hide();
+        todoModal.hide();
         return;
       }
 
@@ -375,6 +390,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // ModalConfirm elfogadás gomb kezelése
+  document.getElementById("modalConfirmButton")?.addEventListener("click", async () => {
+    if (confirmMode.isDelete.isOn) {
+      const todo = await TodoService.getTodoById(confirmMode.isDelete.id);
+      if (await TodoService.editTodo(confirmMode.isDelete.id, {...todo, isDeleted: true} as Todo)) {
+        makeToast("Todo sikeresen törölve!", "Siker");
+      }
+      else {
+        makeToast("Todo törlése sikertelen!", "Hiba");
+      }
+      drawTodos();
+    }
+    confirmMode.isDelete.isOn = false;
+    confirmModal.hide();
+});
+
   // Sötét mód beállítása
   if (config.darkMode) {
     document.querySelector('body')?.setAttribute('data-bs-theme', 'dark');
@@ -385,7 +416,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Ha van módosítandó Todo, akkor megjeleníti a Todo szerkesztéséhez szükséges modalt
   if (config.editMode.isOn) {
-    modalTodo.show();
+    todoModal.show();
   }
 
   await drawTodos();
