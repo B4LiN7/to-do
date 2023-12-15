@@ -10,10 +10,9 @@ const mode = {
 }
 
 /**
- * Betölti a beállításokat a megfelelő helyre.
+ * Betölti a lehetséges beállításokat a megfelelő helyre.
  */
 export function loadOptions() {
-    const config = ConfigurationService.config;
     const selectDefaultCardStyle = document.getElementById("selectDefaultCardStyle") as HTMLSelectElement;
     const selectDefaultButtonStyle = document.getElementById("selectDefaultButtonStyle") as HTMLSelectElement;
     const selectCompletedCardStyle = document.getElementById("selectCompletedCardStyle") as HTMLSelectElement;
@@ -61,8 +60,20 @@ export function loadOptions() {
         option.value = value;
         option.text = key;
         selectExpiredButtonStyle.appendChild(option);
-    });
+    }); 
+}
 
+/**
+ * Betölti a beállításokat a megfelelő helyre.
+ */
+export function loadSelecetedOptions() {
+    const config = ConfigurationService.config;
+    const selectDefaultCardStyle = document.getElementById("selectDefaultCardStyle") as HTMLSelectElement;
+    const selectDefaultButtonStyle = document.getElementById("selectDefaultButtonStyle") as HTMLSelectElement;
+    const selectCompletedCardStyle = document.getElementById("selectCompletedCardStyle") as HTMLSelectElement;
+    const selectCompletedButtonStyle = document.getElementById("selectCompletedButtonStyle") as HTMLSelectElement;
+    const selectExpiredCardStyle = document.getElementById("selectExpiredCardStyle") as HTMLSelectElement;
+    const selectExpiredButtonStyle = document.getElementById("selectExpiredButtonStyle") as HTMLSelectElement;
 
     selectDefaultCardStyle.value = config.cardStyle.cardBody.default;
     selectDefaultButtonStyle.value = config.cardStyle.button.default;
@@ -72,9 +83,13 @@ export function loadOptions() {
     selectExpiredButtonStyle.value = config.cardStyle.button.expired;
 }
 
+/**
+ * Az oldal betöltésekor lefutó kód.
+ */
 document.addEventListener("DOMContentLoaded", async () => {
-    await ConfigurationService.loadConfig();
+    ConfigurationService.loadConfig();
     loadOptions();
+    loadSelecetedOptions();
 
     document.getElementById("selectDefaultCardStyle")?.addEventListener("change", (event) => {
         ConfigurationService.setDefaultCardBodyStyleByValue((event.target as HTMLSelectElement).value);
@@ -128,18 +143,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     document.getElementById("btnChangeDarkMode")?.addEventListener("click", () => {
+        ConfigurationService.changeDarkmode();
+        ConfigurationService.saveConfig();
         if (ConfigurationService.config.darkMode) {
-            ConfigurationService.config.darkMode = false;
-            ConfigurationService.saveConfig();
+            document.querySelector('body')?.setAttribute('data-bs-theme', 'dark');
+            (document.getElementById("btnChangeDarkMode") as HTMLButtonElement).innerText = "Világos mód";
+        }
+        else {
             document.querySelector('body')?.setAttribute('data-bs-theme', 'white');
             (document.getElementById("btnChangeDarkMode") as HTMLButtonElement).innerText = "Sötét mód";
         }
-        else {
-            ConfigurationService.config.darkMode = true;
-            ConfigurationService.saveConfig();
-            document.querySelector('body')?.setAttribute('data-bs-theme', 'dark');
-            (document.getElementById("btnChangeDarkMode") as HTMLButtonElement).innerText = "Világos mód";
-        }   
+        loadSelecetedOptions();
     });
 
     document.getElementById("modalConfirmButton")?.addEventListener("click", () => {

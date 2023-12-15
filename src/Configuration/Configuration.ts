@@ -1,3 +1,6 @@
+/**
+ * Konfiguráció az oldal megjelenítéséhez.
+ */
 export interface Configuration {
   darkMode: boolean;
   editMode: {
@@ -22,6 +25,9 @@ export interface Configuration {
   };
 }
 
+/**
+ * Alapértelmezett konfiguráció.
+ */
 export const defaultConfiguration = {
     darkMode: false,
     editMode: {

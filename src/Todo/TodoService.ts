@@ -21,6 +21,7 @@ const colRef = collection(db, "todos");
  * A Todo-k kezelésére szolgáló osztály/szolgáltatás.
  */
 export class TodoService {
+
     /**
      * A prioritások nevei.
      */
@@ -82,6 +83,8 @@ export class TodoService {
      * @returns Igaz/Hamis értékkel tér vissza, attól függően, hogy sikerült-e a létrehozás.
      */
     static async addTodo(newTodo: Todo): Promise<boolean> {
+        newTodo.addDate = new Date();
+        newTodo.editDate = new Date();
         const newTodoDTO = this.convertTodoToTodoDTO(newTodo);
         return addDoc(colRef, newTodoDTO)
             .then(() => true)
@@ -212,8 +215,8 @@ export class TodoService {
 
     /**
      * A poritás számát konvertálja a prioritás nevére.
-     * @param priority A prioritás száma: 1-3 közötti szám.
-     * @returns A proiritás neve: Alacsony, Közepes vagy Magas.
+     * @param priority A prioritás száma.
+     * @returns A proiritás neve.
      */
     static getPriorityName(priority: number): string {
         return this.priorityNames[priority] || "Ismertelen";
@@ -241,7 +244,7 @@ export class TodoService {
     }
 
     /**
-     * Állapot szerint sorba rendezi a Todo-k listáját.
+     * Lejárati állapot szerint sorba rendezi a Todo-k listáját.
      * @param todo Todo-k listája.
      * @returns Sorba rendezett Todo-k listája.
      */
@@ -321,7 +324,7 @@ export class TodoService {
     }
 
     /**
-     * Véglelgesen törli az összes törölt jelölt Todo-t.
+     * Véglelgesen törli az összes töröltnek jelölt Todo-t.
      * @returns Igaz/Hamis értékkel tér vissza, attól függően, hogy sikerült-e a törlés.
      */
     static async dropAllDeletedTodos(): Promise<boolean> {

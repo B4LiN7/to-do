@@ -39,7 +39,7 @@ export function renderTodos(todos: IdTodo[]): void {
   todos.forEach((idTodo) => {
     const todo = idTodo.todo;
 
-    // Skip deleted todos
+    // A törölt Todo-kat nem jelenítjük meg
     if (todo.isDeleted) {
       return;
     }
@@ -150,6 +150,7 @@ export function renderTodos(todos: IdTodo[]): void {
     editButton.addEventListener("click", () => {
       config.editMode.isOn = true;
       config.editMode.id = idTodo.id;
+      ConfigurationService.saveConfig();
       modalTodo.show();
     });
     const editListItem = document.createElement("li");
@@ -161,7 +162,12 @@ export function renderTodos(todos: IdTodo[]): void {
     deleteButton.classList.add("dropdown-item");
     deleteButton.textContent = "Törlés";
     deleteButton.addEventListener("click", async () => {
-      await TodoService.editTodo(idTodo.id, {...todo, isDeleted: true} as Todo);
+      if (await TodoService.editTodo(idTodo.id, {...todo, isDeleted: true} as Todo)) {
+        makeToast("Todo sikeresen törölve!", "Siker");
+      }
+      else {
+        makeToast("Todo törlése sikertelen!", "Hiba");
+      }
       drawTodos();
     });
     const deleteListItem = document.createElement("li");
@@ -199,6 +205,7 @@ export function order(todos: IdTodo[]): IdTodo[] {
  */
 export async function drawTodos() {
   const loadingSpinner = document.getElementById("loadingSpinner") as HTMLDivElement;
+
   loadingSpinner.style.visibility = "visible";
   const todos = await TodoService.getIdTodoList();
   const ordered = order(todos);
@@ -208,7 +215,7 @@ export async function drawTodos() {
 
 /**
  * Bemeneti mezők ellenőrzése.
- * @returns Egy tömböt ad vissza, amiben azok a hibák vannak, amiket a bemeneti mezők tartalmaznak.
+ * @returns Egy tömböt ad vissza, amiben azok a hibák vannak, amik a beviteli mezőkben előfordulnak.
  */
 export function checkModalInputs(): string[] {
   const errorMessages: string[] = [];
@@ -300,11 +307,11 @@ export async function editTodo(): Promise<void> {
       deadline: deadline,
     };
 
-    if (await TodoService.editTodo(
-      config.editMode.id,
-      newTodo
-    )) {
+    if (await TodoService.editTodo(config.editMode.id,newTodo)) {
       makeToast("Todo sikeresen módosítva!", "Siker");
+    }
+    else {
+      makeToast("Todo módosítása sikertelen!", "Hiba");
     }
     await drawTodos();
   }
@@ -313,15 +320,22 @@ export async function editTodo(): Promise<void> {
   }
 }
 
+/**
+ * Az oldal betöltésekor lefutó kód.
+ * Betölti a konfigurációt, beállítja a sötét mód beállítását, és ha van módosítandó Todo, akkor megjeleníti a Todo szerkesztéséhez szükséges modalt.
+ */
 document.addEventListener("DOMContentLoaded", async () => {
-  await ConfigurationService.loadConfig();
+  // Konfiguráció betöltése
+  ConfigurationService.loadConfig();
   const config = ConfigurationService.config;
 
+  // Form küldésének kezelése
   document.getElementById("formTodo")?.addEventListener("submit", (event) => {
     event.preventDefault();
     if (config.editMode.isOn) {
       editTodo();
       config.editMode.isOn = false;
+      ConfigurationService.saveConfig();
     }
     else {
       addTodo();
@@ -329,17 +343,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     modalTodo.hide();
   });
 
+  // Todo hozzáadás gomb kezelése
   document.getElementById("openModalTodoForAdd")?.addEventListener("click", () => {
     config.editMode.isOn = false;
     modalTodo.show();
   });
 
+  // Modal megjelenítésekor a megfelelő cím és mezők beállítása, ha van módosítandó Todo, egyébként bemeneti mezők kiürítése
   document.getElementById("modalTodo")?.addEventListener("show.bs.modal", async () => {
     const modalTodoTitle = document.getElementById("modalTodoTitle") as HTMLElement;
     if (config.editMode.isOn) {
       modalTodoTitle.textContent = "Todo módosítása";
       
-      if (! await TodoService.isExist(config.editMode.id)) {
+      if (!await TodoService.isExist(config.editMode.id)) {
         makeToast("A módosítani kívánt Todo nem létezik!", "Hiba");
         config.editMode.isOn = false;
         ConfigurationService.saveConfig();
@@ -359,6 +375,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // Sötét mód beállítása
   if (config.darkMode) {
     document.querySelector('body')?.setAttribute('data-bs-theme', 'dark');
   }
@@ -366,10 +383,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelector('body')?.setAttribute('data-bs-theme', 'white');
   }
 
-  await drawTodos()
-
+  // Ha van módosítandó Todo, akkor megjeleníti a Todo szerkesztéséhez szükséges modalt
   if (config.editMode.isOn) {
     modalTodo.show();
   }
 
+  await drawTodos();
 });

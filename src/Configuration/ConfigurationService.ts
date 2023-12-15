@@ -1,5 +1,8 @@
 import { Configuration, defaultConfiguration } from "./Configuration";
 
+/**
+ * Konfigurációt kezelő osztály.
+ */
 export class ConfigurationService {
     static config: Configuration;
 
@@ -20,7 +23,6 @@ export class ConfigurationService {
         } 
         else {        
             this.setDefaultConfig();
-            this.saveConfig();
         }
     }
 
@@ -31,11 +33,18 @@ export class ConfigurationService {
         this.saveToLocalStorage(this.config);
     }
 
+    /**
+     * Konfiguráció mentése local storage-ba.
+     * @param config Konfiguráció.
+     */
     static saveToLocalStorage(config: Configuration) {
         const configJson = JSON.stringify(config);
         localStorage.setItem("config", configJson);
     }
 
+    /**
+     * Konfiguráció betöltése local storage-ból.
+     */
     static loadFromLocalStorage(): Configuration {
         const configJson = localStorage.getItem("config") as string;
         return JSON.parse(configJson) as Configuration;
@@ -120,5 +129,34 @@ export class ConfigurationService {
      */
     static setExpiredCardBodyStyleByValue(style: string): void {
         this.config.cardStyle.cardBody.expired = style;
+    }
+
+    /**
+     * Darkmode módosítása.
+     */
+    static changeDarkmode(): void {
+        this.config.darkMode = !this.config.darkMode;
+        const darkmode = this.config.darkMode;
+
+        if (this.config.cardStyle.cardBody.default === "text-bg-dark" && !darkmode) {
+            this.config.cardStyle.cardBody.default = "text-bg-light";
+        }
+        else if (this.config.cardStyle.cardBody.default === "text-bg-light") {
+            this.config.cardStyle.cardBody.default = "text-bg-dark";
+        }
+
+        if (this.config.cardStyle.cardBody.completed === "text-bg-dark" && !darkmode) {
+            this.config.cardStyle.cardBody.completed = "text-bg-light";
+        }
+        else if (this.config.cardStyle.cardBody.completed === "text-bg-light") {
+            this.config.cardStyle.cardBody.completed = "text-bg-dark";
+        }
+
+        if (this.config.cardStyle.cardBody.expired === "text-bg-dark" && !darkmode) {
+            this.config.cardStyle.cardBody.expired = "text-bg-light";
+        }
+        else if (this.config.cardStyle.cardBody.expired === "text-bg-light") {
+            this.config.cardStyle.cardBody.expired = "text-bg-dark";
+        }
     }
 }
