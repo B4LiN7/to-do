@@ -141,21 +141,21 @@ export class ConfigurationService {
         if (this.config.cardStyle.cardBody.default === "text-bg-dark" && !darkmode) {
             this.config.cardStyle.cardBody.default = "text-bg-light";
         }
-        else if (this.config.cardStyle.cardBody.default === "text-bg-light") {
+        else if (this.config.cardStyle.cardBody.default === "text-bg-light" && darkmode) {
             this.config.cardStyle.cardBody.default = "text-bg-dark";
         }
 
         if (this.config.cardStyle.cardBody.completed === "text-bg-dark" && !darkmode) {
             this.config.cardStyle.cardBody.completed = "text-bg-light";
         }
-        else if (this.config.cardStyle.cardBody.completed === "text-bg-light") {
+        else if (this.config.cardStyle.cardBody.completed === "text-bg-light" && darkmode) {
             this.config.cardStyle.cardBody.completed = "text-bg-dark";
         }
 
         if (this.config.cardStyle.cardBody.expired === "text-bg-dark" && !darkmode) {
             this.config.cardStyle.cardBody.expired = "text-bg-light";
         }
-        else if (this.config.cardStyle.cardBody.expired === "text-bg-light") {
+        else if (this.config.cardStyle.cardBody.expired === "text-bg-light" && darkmode) {
             this.config.cardStyle.cardBody.expired = "text-bg-dark";
         }
     }
