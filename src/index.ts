@@ -44,6 +44,7 @@ export function setConfirmModal(message: string, title: string) {
   modalConfirmTitle.innerText = title;
   modalConfirmMessage.innerText = message;
 }
+
 /**
  * A Todo-k listájának renderelése.
  * @param todos Todo-k listája. IdTodo-kat tartalmaz, hogy a gombokat megfelelően lehessen kezelni.
@@ -62,7 +63,7 @@ export function renderTodos(todos: IdTodo[]): void {
       return;
     }
 
-    // Create card
+    // Kártya létrehozása és stílusának beállítása
     const card = document.createElement("div");
     card.classList.add("card", "h-100");
     if (todo.isCompleted) {
@@ -75,40 +76,40 @@ export function renderTodos(todos: IdTodo[]): void {
       card.classList.add(config.cardStyle.cardBody.default);
     }
 
-    // Create card header
+    // Kártya fejlécének létrehozása és kártyához adása
     const cardHeader = document.createElement("h5");
     cardHeader.classList.add("card-header");
     cardHeader.textContent = todo.title;
     card.appendChild(cardHeader);
 
-    // Create card body
+    // Kártya "testének" létrehozása és kártyához adása
     const cardBody = document.createElement("div");
     cardBody.classList.add("card-body");
 
-    // Create card text for description
-    const cardText = document.createElement("p");
-    cardText.classList.add("card-text");
-    cardText.textContent = todo.description;
-    cardBody.appendChild(cardText);
+    // Kártya leirásának létrehozása és kártya "testéhez" adása
+    const cardDescription = document.createElement("p");
+    cardDescription.classList.add("card-text");
+    cardDescription.textContent = todo.description;
+    cardBody.appendChild(cardDescription);
 
-    // Create card text for priority and deadline
+    // Kártya prioritásának és határidejének létrehozása és kártya "testéhez" adása
     const cardPriority = document.createElement("p");
     cardPriority.classList.add("card-text", "small");
-    cardPriority.textContent = "⚠️Prioritás: " + TodoService.getPriorityName(todo.priority) + " ⌛Határidő: " + todo.deadline.toLocaleDateString() + " " + todo.deadline.toLocaleTimeString();
+    cardPriority.textContent = `⚠️Prioritás:  ${TodoService.getPriorityName(todo.priority)} ⌛Határidő: ${todo.deadline.toLocaleDateString()} ${todo.deadline.getHours()}:${todo.deadline.getMinutes() < 10 ? "0" + todo.deadline.getMinutes() : todo.deadline.getMinutes()}`;
     cardBody.appendChild(cardPriority);
 
-    // Add cardBody for card
+    // Kártya "testének" kártyához adása
     card.appendChild(cardBody);
 
-    // Create card footer
+    // Kártya láblécének létrehozása
     const cardFooter = document.createElement("div");
     cardFooter.classList.add("card-footer", "text-body-secondary", "text-end");
 
-    // Create button group for actions
+    // Gomb csoport létrehozása
     const buttonGroup = document.createElement("div");
     buttonGroup.classList.add("btn-group");
 
-    // Create button for changing completed status
+    // Gomb a Todo késznek/nem késznek jelöléséhez
     const changeCompletedStatus = document.createElement("button");
     changeCompletedStatus.classList.add("btn");
     if (todo.isCompleted) {
@@ -120,7 +121,6 @@ export function renderTodos(todos: IdTodo[]): void {
     else {
       changeCompletedStatus.classList.add(config.cardStyle.button.default);
     }
-
     if (todo.isCompleted) {
       changeCompletedStatus.textContent = "Nem késznek jelölés";
     } else {
@@ -138,7 +138,7 @@ export function renderTodos(todos: IdTodo[]): void {
     });
     buttonGroup.appendChild(changeCompletedStatus);
 
-    // Create dropdown button for other buttons
+    // Dropdown gomb létrehozása
     const dropdownButton = document.createElement("button");
     dropdownButton.classList.add("btn", "dropdown-toggle");
     if (todo.isCompleted) {
@@ -150,18 +150,17 @@ export function renderTodos(todos: IdTodo[]): void {
     else {
       dropdownButton.classList.add(config.cardStyle.button.default);
     }
-
     dropdownButton.setAttribute("type", "button");
     dropdownButton.setAttribute("data-bs-toggle", "dropdown");
     dropdownButton.setAttribute("aria-expanded", "false");
     dropdownButton.textContent = "Egyéb";
     buttonGroup.appendChild(dropdownButton);
 
-    // Create dropdown menu
+    // Dropdown menü létrehozása
     const dropdownMenu = document.createElement("ul");
     dropdownMenu.classList.add("dropdown-menu");
 
-    // Create edit button
+    // Szerkesztés gomb létrehozása
     const editButton = document.createElement("button");
     editButton.classList.add("dropdown-item");
     editButton.textContent = "Módosítás";
@@ -175,7 +174,7 @@ export function renderTodos(todos: IdTodo[]): void {
     editListItem.appendChild(editButton);
     dropdownMenu.appendChild(editListItem);
 
-    // Create delete button
+    // Törlés gomb létrehozása
     const deleteButton = document.createElement("button");
     deleteButton.classList.add("dropdown-item");
     deleteButton.textContent = "Törlés";
@@ -189,19 +188,21 @@ export function renderTodos(todos: IdTodo[]): void {
     deleteListItem.appendChild(deleteButton);
     dropdownMenu.appendChild(deleteListItem);
 
-    // Add dropdown menu for button group
+    // Dropdown menü hozzáadása a gomb csoporthoz
     buttonGroup.appendChild(dropdownMenu);
 
-    // Add button group for card footer
+    // Gomb csoport hozzáadása a kártya láblécéhez
     cardFooter.appendChild(buttonGroup);
+
+    // Kártya láblécének hozzáadása a kártyához
     card.appendChild(cardFooter);
 
-    // Create column for card
+    // Col létrehozása
     const col = document.createElement("div");
     col.classList.add("col");
     col.appendChild(card);
 
-    // Add card for column
+    // Col hozzáadása a Todo-kat tartalmazó div-hez
     todoDiv.appendChild(col);
   });
 }
@@ -337,7 +338,7 @@ export async function editTodo(): Promise<void> {
 
 /**
  * Az oldal betöltésekor lefutó kód.
- * Betölti a konfigurációt, beállítja a sötét mód beállítását, és ha van módosítandó Todo, akkor megjeleníti a Todo szerkesztéséhez szükséges modalt.
+ * Betölti a konfigurációt, beállítja a sötét módot, és ha van módosítandó Todo, akkor megjeleníti a Todo szerkesztéséhez szükséges modalt.
  */
 document.addEventListener("DOMContentLoaded", async () => {
   // Konfiguráció betöltése
@@ -361,25 +362,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Todo hozzáadás gomb kezelése
   document.getElementById("openModalTodoForAdd")?.addEventListener("click", () => {
     config.editMode.isOn = false;
+    ConfigurationService.saveConfig();
     todoModal.show();
   });
 
   // Modal megjelenítésekor a megfelelő cím és mezők beállítása, ha van módosítandó Todo, egyébként bemeneti mezők kiürítése
   document.getElementById("modalTodo")?.addEventListener("show.bs.modal", async () => {
-    const modalTodoTitle = document.getElementById("modalTodoTitle") as HTMLElement;
+    const todoModalTitle = document.getElementById("modalTodoTitle") as HTMLElement;
     if (config.editMode.isOn) {
-      modalTodoTitle.textContent = "Todo módosítása";
-      
+      todoModalTitle.textContent = "Todo módosítása";
       if (await TodoService.isExist(config.editMode.id)) {
         const todo = await TodoService.getTodoById(config.editMode.id);
         (document.getElementById("inTodoTitle") as HTMLInputElement).value = todo.title;
         (document.getElementById("inTodoDescription") as HTMLInputElement).value = todo.description;
         (document.getElementById("inTodoPriority") as HTMLInputElement).value = todo.priority.toString();
-
-        // Ideiglenes megoldás, mert a Date input nem az elvárt modon jeleníti meg a dátumot
-        const newDeadline = new Date(todo.deadline);
-        newDeadline.setHours(newDeadline.getHours() + 1);
-        (document.getElementById("inTodoDeadline") as HTMLInputElement).value = newDeadline.toISOString().slice(0, 16);
+        (document.getElementById("inTodoDeadline") as HTMLInputElement).value = `${todo.deadline.getFullYear()}-${(todo.deadline.getMonth() + 1)}-${todo.deadline.getDate() < 10 ? "0" + todo.deadline.getDate() : todo.deadline.getDate()}T${todo.deadline.getHours() < 10 ? "0" + todo.deadline.getHours() : todo.deadline.getHours() }:${todo.deadline.getMinutes() < 10 ? "0" + todo.deadline.getMinutes() : todo.deadline.getMinutes()}`;
       }
       else {
         todoModal.hide();
@@ -389,7 +386,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
     else {
-      modalTodoTitle.textContent = "Új Todo hozzáadása";
+      todoModalTitle.textContent = "Új Todo hozzáadása";
       clearModalInputs();
     }
   });
