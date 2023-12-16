@@ -94,7 +94,7 @@ export function renderTodos(todos: IdTodo[]): void {
     // Create card text for priority and deadline
     const cardPriority = document.createElement("p");
     cardPriority.classList.add("card-text", "small");
-    cardPriority.textContent = "⚠️Prioritás: " + TodoService.getPriorityName(todo.priority) + " ⌛Határidő: " + todo.deadline.toLocaleString().slice(0, 19);
+    cardPriority.textContent = "⚠️Prioritás: " + TodoService.getPriorityName(todo.priority) + " ⌛Határidő: " + todo.deadline.toLocaleDateString() + " " + todo.deadline.toLocaleTimeString();
     cardBody.appendChild(cardPriority);
 
     // Add cardBody for card
@@ -370,23 +370,35 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (config.editMode.isOn) {
       modalTodoTitle.textContent = "Todo módosítása";
       
-      if (!await TodoService.isExist(config.editMode.id)) {
-        makeToast("A módosítani kívánt Todo nem létezik!", "Hiba");
+      if (await TodoService.isExist(config.editMode.id)) {
+        const todo = await TodoService.getTodoById(config.editMode.id);
+        (document.getElementById("inTodoTitle") as HTMLInputElement).value = todo.title;
+        (document.getElementById("inTodoDescription") as HTMLInputElement).value = todo.description;
+        (document.getElementById("inTodoPriority") as HTMLInputElement).value = todo.priority.toString();
+
+        // Ideiglenes megoldás, mert a Date input nem az elvárt modon jeleníti meg a dátumot
+        const newDeadline = new Date(todo.deadline);
+        newDeadline.setHours(newDeadline.getHours() + 1);
+        (document.getElementById("inTodoDeadline") as HTMLInputElement).value = newDeadline.toISOString().slice(0, 16);
+      }
+      else {
+        todoModal.hide();
         config.editMode.isOn = false;
         ConfigurationService.saveConfig();
-        todoModal.hide();
-        return;
+        makeToast("A módosítani kívánt Todo nem létezik!", "Hiba");
       }
-
-      const todo = await TodoService.getTodoById(config.editMode.id);
-      (document.getElementById("inTodoTitle") as HTMLInputElement).value = todo.title;
-      (document.getElementById("inTodoDescription") as HTMLInputElement).value = todo.description;
-      (document.getElementById("inTodoPriority") as HTMLInputElement).value = todo.priority.toString();
-      (document.getElementById("inTodoDeadline") as HTMLInputElement).value = todo.deadline.toISOString().slice(0, 16);
     }
     else {
       modalTodoTitle.textContent = "Új Todo hozzáadása";
       clearModalInputs();
+    }
+  });
+
+  // Modal bezárásakor az editMode kikapcsolása
+  document.getElementById("modalTodo")?.addEventListener("hide.bs.modal", () => {
+    if (config.editMode.isOn) {
+      config.editMode.isOn = false;
+      ConfigurationService.saveConfig();
     }
   });
 
